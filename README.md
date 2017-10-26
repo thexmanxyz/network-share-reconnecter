@@ -36,7 +36,7 @@ Here a short description of the available parameters which can be configured:
 * debug - enable or disable debug dialogs on current reconnection state
 
 ## Features
-* automatic reconnection of network drives / shares
+* automatic reconnection of network drives / shares on logon or unlock workstation
 * stealth (operates without exposing any prompts or windows)
 * determines availability and accessability 
 * polling, retry and fallback
