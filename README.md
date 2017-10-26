@@ -16,7 +16,8 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 5. Start Windows Task Scheduler: manually or with "taskschd.msc"
 6. Import "Network Share Reconnect.xml"
 7. Modify the path to the script you have chosen before (or do it previously in the "Network Share Reconnect.xml")
-8. (Optional) change the Scheduler Task depending on your favor and preferences
+8. Change UserId for Triggers
+9. (Optional) change the Scheduler Task depending on your favor and preferences
 
 ## Configuration and Parameters
 Here a short description of the available parameters which can be configured:
