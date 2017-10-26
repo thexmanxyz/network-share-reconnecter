@@ -2,7 +2,7 @@
 '
 ' Purpose: This script tries to automatically reconnect
 '          disconnected Windows network shares / drives 
-'		   if they are offline or are listed as offline.
+'          if they are offline or are listed as offline.
 '          The current network and access state is 
 '          periodically checked until they become available 
 '          or if the reconnection threshold is hit.
