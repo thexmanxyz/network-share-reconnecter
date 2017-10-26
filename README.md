@@ -20,7 +20,7 @@ Many claim that the reconnect problem leads back to a timing problem during logi
    * change the UserId for the defined Triggers (or do it previously in the **Network_Share_Reconnecter.xml**)
 8. (Optional) change the Scheduler Task depending on your favor and preferences
 
-If you need multi server support please wait until an improved version is out or otherwise creat multiple scheduler tasks and duplicate the script for each server. Otherwise you can also modify the script and call the *waitOnServerConnect()* routine multiple times (however this is the worst solution because it's not async and imposed a big delay).
+If you need multi server support please wait until an improved version is out or otherwise creat multiple scheduler tasks and duplicate the script for each server. Otherwise you can also modify the script and call the *waitOnServerConnect()* routine multiple times (however this is the worst solution because it's not async and will probably impose a big delay).
 
 ## Configuration and Parameters
 Here a short description of the available parameters which can be configured:
