@@ -26,7 +26,7 @@ Here a short description of the available parameters which can be configured:
 * pingWait - wait time after failed server ping
 * reconWait - wait time after failed availability check
 * pingCtn - how many pings per reconnect should be executed before giving up
-* netUseCtn - how many *net use* fails are allowed before giving up
+* netUseCtn - how many *net use* fails per reconnect are allowed before giving up
 * serverRetryCtn - how many overall reconnection tries should be executed
 * netUsePersistent - should *net use* create a persistent share (yes/no)
 * debug - enable or disable debug dialogs on current reconnection state
