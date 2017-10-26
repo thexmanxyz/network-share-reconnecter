@@ -1,7 +1,7 @@
 # Network Share Reconnecter
 This project contains a VB script and a Windows scheduler task to automatically reconnect disconnected network shares / drives on login (if they are available or become available). But why? The reason for creating this procject is that attached network drives are not correctly reconnected on startup, restart or resume from hibernate / sleep. This still happens in the latest release *Windows 10 Fall Creators Update* or in my case especially in this release.
 
-Many claim that the reconnect problem leads back to a timing problem during login and the establishment of the network connection but there is no official statement from Microsoft as fas as I know. There are many registry hacks out there which do not work and do not improve this behaviour. Moreover this problem already exists for years so I now decided to create a reconnecter which reacts on network availability and share accessability.
+Many claim that the reconnect problem leads back to a timing problem during login and the establishment of the network connection but there is no official statement from Microsoft as far as I know. There are many registry hacks out there which do not work and do not improve this behaviour. Moreover this problem already exists for years so I now decided to create a reconnecter which reacts on network availability and share accessability.
 
 ## Prerequisites
 * Windows XP, 7, 8, 8.1, 10
