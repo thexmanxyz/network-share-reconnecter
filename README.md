@@ -8,9 +8,27 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 * little knowledge on Windows Task Scheduling
 
 ## Download / Installation
-1. a
+1. [Download v1.0]() of the Network Share Reconnecter Package
+2. Extract the files
+3. modify the "share_reconnect.vbs"
+   * at least modify "hostname", "sharePaths" and "shareLetters"
+4. copy "share_reconnect.vbs" to a self defined directory
+5. Start Windows Task Scheduler: manually or with "taskschd.msc"
+6. Import "Network Share Reconnect.xml"
+7. Modify the path to the script you have chosen bevore (or do it previously in the "Network Share Reconnect.xml")
 
 ## Configuration and Parameters
+Here a short description of the available parameters which can be configured:
+* hostname - IP or hostname of server (must be modified)
+* sharePaths - all share paths on that server (must be modified)
+* shareLetters - the share / drive letters for the defined paths (must be modified)
+* pingWait - wait time after failed server ping
+* reconWait - wait time after failed availability check
+* pingCtn - how many pings per reconnect should be executed before giving up
+* netUseCtn - how many *net use* fails are allowed before giving up
+* serverRetryCtn - how many overall reconnection tries should be executed
+* netUsePersistent - should *net use* create a persistent share (yes/no)
+* debug - enable or disable debug dialogs on current reconnection state
 
 ## Features
 * automatic reconnection of network drives / shares
