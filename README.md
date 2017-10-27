@@ -17,7 +17,7 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 6. Import **Network_Share_Reconnecter.xml**
 7. Modify the Scheduler Task
    * change the path to the script you have chosen before (or do it previously in the **Network_Share_Reconnecter.xml**)
-   * change the UserId for the defined Triggers (or do it previously in the **Network_Share_Reconnecter.xml**)
+   * (Optional) change the user for the defined triggers (or do it previously in the **Network_Share_Reconnecter.xml**)
 8. (Optional) change the Scheduler Task depending on your favor and preferences
 
 If you need multi server support please wait until an improved version is out or otherwise creat multiple scheduler tasks and duplicate the script for each server. Otherwise you can also modify the script and call the *waitOnServerConnect()* routine multiple times (however this is the worst solution because it's not async and will probably impose a big delay).
