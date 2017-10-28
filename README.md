@@ -41,7 +41,7 @@ Here a short description of the available parameters which can be configured:
   * netUsePersistent - should *net use* create a persistent share **(yes/no)**
 
 ## Features
-* automatic reconnection of network drives and shares on logon or unlock workstation
+* automatic reconnection of network drives and shares on logon or unlock of the workstation
 * stealth script execution (operates without exposing any prompts or windows except debug :P)
 * self determines server and share availability and accessability 
 * variable and flexible configurable of polling, timeouts and fallback handling
