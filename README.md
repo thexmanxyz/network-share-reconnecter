@@ -44,7 +44,7 @@ Here a short description of the available parameters which can be configured:
 * automatic reconnection of network drives and shares on logon or unlock of the workstation
 * stealth script execution (operates without exposing any prompts or windows except debug :P)
 * self determines server and share availability and accessability 
-* variable and flexible configurable of polling, timeouts and fallback handling
+* variable and flexible configuration of polling, timeouts and fallback handling
 * configuration of multiple servers together with their shares
 * fast ICMP ping checks and adaptive intensity
 * scheduling task included (.xml) for easy import
