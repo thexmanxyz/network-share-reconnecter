@@ -1,257 +1,443 @@
-'-----------------------------------------------------------'
-' Network Share Reconnecter                                 '
-'                                                           '
-' Purpose: This script tries to automatically reconnect     '
-'          disconnected Windows network shares / drives     '
-'          if they are offline or are listed as offline.    '
-'          The current network and access state is          '
-'          periodically checked until they become available '
-'          or if the reconnection threshold is hit.         '
-'                                                           '
-' Author: thexmanxy (Andreas Kar)                           '
-' Contact: andreas.kar@gmx.at                               '
-'-----------------------------------------------------------'
+'--------------------------------------------------------------'
+'   Network Share Reconnecter                                  '
+'                                                              '
+'   Purpose: This script tries to automatically reconnect      '
+'            disconnected Windows network shares and drives    '
+'            if they are offline or are listed as offline.     '
+'            The current network and access state is           '
+'            periodically checked until they become available  '
+'            or when the reconnection threshold is hit.        '
+'                                                              '
+'   Author: Andreas Kar (thex) <andreas.kar@gmx.at >           '
+'--------------------------------------------------------------'
 
-'----------------------------------------'
-' Simple class for server configuration. '
-'----------------------------------------'
+'--------------------------------------------'
+' Simple class for the server configuration. '
+'--------------------------------------------'
 
 Class ServerConfiguration
-   Public hostname
-   Public sharePaths
-   Public shareLetters
-   Public netUsePersistent
-   Public hPath
-   Public online
+	Public hostname
+	Public sharePaths
+	Public shareLetters
+	Public netUsePersistent
+	Public hPath
+	Public online
+	Public connected
 End Class
 
-'----------------------------------------'
-' Simple class for script configuration. '
-'----------------------------------------'
+'--------------------------------------------'
+' Simple class for the script configuration. '
+'--------------------------------------------'
 
 Class ScriptConfiguration
-   Public pingWait
-   Public netUseWait
-   Public reconWait
-   Public pingCtn
-   Public netUseCtn
-   Public serverRetryCtn
-   Public shell
-   Public fso
-   Public debug
+	Public pingWait
+	Public netUseWait
+	Public reconWait
+	Public pingCtn
+	Public netUseCtn
+	Public serverRetryCtn
+	Public pingTimeout
+	Public winMgmts
+	Public shell
+	Public fso
+	Public debug
 End Class
 
-'-------------------------------------------------------------'
-' Routine to ping a server with a predfined configuration     '
-'                                                             '
-' scriptConfig - object for the global script configuration   '
-' srvConfig - configuration object of the server              '
-'-------------------------------------------------------------'
+'-----------------------------------------------------------------'
+' Routine to Shell ping a server with a predfined configuration.  '
+' (not used because ping does not return correct status)          '
+'                                                                 '
+' scriptConfig - object for the global script configuration       '
+' srvConfig - configuration object of the server                  '
+'-----------------------------------------------------------------'
 
-function pingServer(scriptConfig, srvConfig)
+Function pingServer(scriptConfig, srvConfig)
 	pingServer = scriptConfig.shell.Run("ping -n 1 " & srvConfig.hostname, 0, True)
 End Function
 
 '-------------------------------------------------------------'
-' Routine that tries to reach server with ping and failover   '
+' Routine to create a WMI query for an ICMP ping.             '
 '                                                             '
 ' scriptConfig - object for the global script configuration   '
 ' srvConfig - configuration object of the server              '
 '-------------------------------------------------------------'
 
-Function pingReachServer(scriptConfig, srvConfig)
+Function getWMIPingCmd(scriptConfig, srvConfig)
+	getWMIPingCmd = "select * from Win32_PingStatus where TimeOut = " _ 
+					& scriptConfig.pingTimeout & " and address = '" & srvConfig.hostname & "'"
+End Function
+
+'-----------------------------------------------------------------'
+' Routine to ICMP ping a server with a predfined configuration.   '
+'                                                                 '
+' scriptConfig - object for the global script configuration       '
+' srvConfig - configuration object of the server                  '
+'-----------------------------------------------------------------'
+
+Function pingICMPServer(scriptConfig, srvConfig)
+	Dim ping, pEle, online
+	
+	online = false
+	Set ping = scriptConfig.winMgmts.ExecQuery(getWMIPingCmd(scriptConfig, srvConfig))								
+	For each pEle in ping
+		online = Not IsNull(pEle.StatusCode) And pEle.StatusCode = 0
+		If Not online Then
+			Exit For
+		End If
+	Next
+	pingICMPServer = Not online
+End Function
+
+'-----------------------------------------------------------------'
+' Routine that retries to reach a server with a ping (failover).  '
+'                                                                 '
+' scriptConfig - object for the global script configuration       '
+' srvConfig - configuration object of the server                  '
+'-----------------------------------------------------------------'
+
+Function retryPingServer(scriptConfig, srvConfig, icmp)
 	Dim i, offline
 	
 	i = 0
-	offline = 1
-	While offline = 1 And i <= scriptConfig.pingCtn - 1
-		offline = pingServer(scriptConfig, srvConfig)
+	offline = true
+	While offline And i <= scriptConfig.pingCtn - 1
+		If icmp Then
+			offline = pingICMPServer(scriptConfig, srvConfig)
+		Else
+			offline = pingServer(scriptConfig, srvConfig)
+		End If
 		i = i + 1
-		If offline = 1 Then
+		If offline Then
 			WScript.Sleep scriptConfig.pingWait
 		End If
 	Wend
-	pingReachServer = offline
-	
+	retryPingServer = offline
 End Function
 
-'---------------------------------------------------------'
-' Routine to create a net use command for a share         '
-'                                                         '
-' srvConfig - configuration object of the server          '
-' pos - the current position of the share array           '
-'---------------------------------------------------------'
+'------------------------------------------------------------'
+' Routine to get the net use command for the current share.  '
+'                                                            '
+' srvConfig - configuration object of the server             '
+' pos - the current position of the share array              '
+'------------------------------------------------------------'
 
-Function createNetUseCmd(srvConfig, pos)
-	createNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " \\" & srvConfig.hostname & "\" & srvConfig.sharePaths(pos) & " /persistent:" & srvConfig.netUsePersistent
+Function getNetUseCmd(srvConfig, pos)
+	getNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " \\" & srvConfig.hostname _ 
+				   & "\" & srvConfig.sharePaths(pos) & " /persistent:" & srvConfig.netUsePersistent
 End Function
-
-'---------------------------------------------------------------------'
-' Routine that tries to reconnect shares with net uses and failover   '
-'                                                                     '
-' scriptConfig - object for the global script configuration           '
-' srvConfig - configuration object of the server                      '
-'---------------------------------------------------------------------'
-
-Function netUseServerShares(scriptConfig, srvConfig)
-	Dim i, status, ctn
-	
-	i = 0
-	ctn = 0
-	status = 1
-	While status = 1 And i <= scriptConfig.netUseCtn - 1
-		For j = 0 to uBound(srvConfig.sharePaths)
-			If ctn = 0 Then
-				status = scriptConfig.shell.Run(createNetUseCmd(srvConfig, j), 0, True)
-			Else
-				scriptConfig.shell.Run createNetUseCmd(srvConfig, j), 0, True
-			End If
-			ctn = ctn + 1
-		Next
-		i = i + 1
-		If status = 1 Then
-			WScript.Sleep scriptConfig.netUseWait
-		End If
-	Wend
-End Function
-
-'-------------------------------------------------------------'
-' Routine to set server state by ping and share connectivity  '
-'                                                             '
-' scriptConfig - object for the global script configuration   '
-' srvConfig - configuration object of the server              '
-'-------------------------------------------------------------'
-
-Sub setSrvState(ByVal scriptConfig, ByRef srvConfig)
-	If pingReachServer(scriptConfig, srvConfig) = 0 Then
-		srvConfig.online = scriptConfig.fso.FolderExists(srvConfig.hPath)
-	Else
-		srvConfig.online = 0
-	End If
-End Sub
-
-'-------------------------------------------------------------'
-' Routine to set server help path                             '
-'                                                             '
-' srvConfig - configuration object of the server              '
-'-------------------------------------------------------------'
-
-Sub setSrvPath(ByRef srvConfig)
-	srvConfig.hPath = "\\" & srvConfig.hostname & "\" & srvConfig.sharePaths(0)
-End Sub
-
-'-------------------------------------------------------------'
-' Routine that dynamically adjusts wait time on retry count   '
-'                                                             '
-' scriptConfig - object for the global script configuration   '
-' retries - number of already executed retries                '
-'-------------------------------------------------------------'
-
-Function getReconWaitTime(scriptConfig, retries)
-	Dim reconWait
-	
-	If retries <= 25 Then
-		reconWait = scriptConfig.reconWait
-	ElseIf retries > 25 and retries <= 40 Then
-		reconWait = scriptConfig.reconWait * 6
-	Else
-		reconWait = scriptConfig.reconWait * 8
-	End If
-	
-	getReconWaitTime = reconWait
-End Function
-
-'-------------------------------------------------------------------------------------------'
-' Routine to check server connectivity and try to reconnect shares if the server is online. '
-'                                                                                           '
-' scriptConfig - object for the global script configuration                                 '
-' srvConfig - configuration object of the server                                            '
-'-------------------------------------------------------------------------------------------'
-
-Sub checkNconnect(scriptConfig, srvConfig)
-	status = pingReachServer(scriptConfig, srvConfig)
-	If status = 0 Then
-		netUseServerShares scriptConfig, srvConfig
-	End If
-End Sub
 
 '----------------------------------------------------------------------'
-' Routine to check share availability and initiate share reconnection. '
+' Routine that tries to reconnect shares with net use and a failover.  '
 '                                                                      '
 ' scriptConfig - object for the global script configuration            '
 ' srvConfig - configuration object of the server                       '
 '----------------------------------------------------------------------'
 
-Sub waitOnServerConnect(scriptConfig, srvConfig)
-	Set scriptConfig.fso = CreateObject("Scripting.FileSystemObject")
-	Set scriptConfig.shell = CreateObject("WScript.Shell")
-	Dim i
-		
+Sub netUseServerShares(ByVal scriptConfig, ByRef srvConfig)
+	Dim i, failed, ctn
+	
 	i = 0
-	setSrvPath srvConfig
-	setSrvState scriptConfig, srvConfig
-	While ((i <= scriptConfig.serverRetryCtn - 1 And Not srvConfig.online) Or (i = 0 And srvConfig.online))
+	ctn = 0
+	failed = 1
+	While failed = 1 And i <= scriptConfig.netUseCtn - 1
+		For j = 0 to uBound(srvConfig.sharePaths)
+			If ctn = 0 Then
+				failed = scriptConfig.shell.Run(getNetUseCmd(srvConfig, j), 0, True)
+			Else
+				scriptConfig.shell.Run getNetUseCmd(srvConfig, j), 0, True
+			End If
+			ctn = ctn + 1
+		Next
 		i = i + 1
-		If Not srvConfig.online Then
-			If scriptConfig.debug = 1 Then
-				MsgBox("Server still offline, keep waiting...")
-			End If
-			
-			WScript.Sleep getReconWaitTime(scriptConfig, i)
-			setSrvState scriptConfig, srvConfig
-			If srvConfig.online Then
-				checkNconnect scriptConfig, srvConfig
-			End If
-		Else
-			checkNconnect scriptConfig, srvConfig
+		If failed = 1 Then
+			WScript.Sleep scriptConfig.netUseWait
 		End If
 	Wend
-	If scriptConfig.debug = 1 And srvConfig.online Then
-		MsgBox("Server now online, drives reconnected!")
-	End If
-end sub
+	srvConfig.connected = false
+End Sub
 
-'-------------------------------------------------------------------------------'
-' This are the OPTIONAL script parameters which can be adapted to TUNE the      '
-' the script if it reconnects to slow or to MINIMIZE the overhead.              '
-'                                                                               '
-' pingWait - wait time after failed server ping                                 '
-' netUseWait - wait time after failed net use                                   '
-' reconWait - wait time after failed availability check                         '
-' pingCtn - how many pings per reconnect should be executed before giving up    '
-' netUseCtn - how many net use fails per reconnect are allowed before giving up '
-' serverRetryCtn - how many overall reconnection tries should be executed       '
-' debug - enable or disable debug dialogs on current reconnection state         '
-'-------------------------------------------------------------------------------'
+'------------------------------------------------------------------------'
+' Routine to initialize the script config with objects that are reused.  '
+'                                                                        '
+' scriptConfig - object for the global script configuration              '
+'------------------------------------------------------------------------'
+
+Sub initConfig(ByRef scriptConfig)
+	Set scriptConfig.winMgmts = GetObject("winmgmts:{impersonationLevel=impersonate}")
+	Set scriptConfig.fso = CreateObject("Scripting.FileSystemObject")
+	Set scriptConfig.shell = CreateObject("WScript.Shell")
+End Sub
+
+'--------------------------------------------------------------------'
+' Routine that creates a new server object.                          '
+'                                                                    '
+' hostname - IP or human readable hostname                           '
+' sharePaths - array that contains share paths                       '
+' shareLetters - array that contains share letters                   '
+' netUsePersistent - "yes" or "no" for the net use persistent state  '
+'--------------------------------------------------------------------'
+
+Function createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
+	Set srvCfg = New ServerConfiguration
+	srvCfg.hostname = hostname
+	srvCfg.sharePaths = sharePaths
+	srvCfg.shareLetters = shareLetters
+	srvCfg.netUsePersistent = netUsePersistent
+	Set createSrvConfig = srvCfg
+End Function
+
+'------------------------------------------------------------'
+' Routine to initialize an array of server objects.          '
+'                                                            '
+' scriptConfig - object for the global script configuration  '
+' srvConfigs - array of server configurations                '
+'------------------------------------------------------------'
+
+Sub initSrvs(ByVal scriptConfig, ByRef srvConfigs)
+	For i = 0 to uBound(srvConfigs)
+		initSrv scriptConfig, srvConfigs(i)
+	Next
+End Sub
+
+'------------------------------------------------------------'
+' Routine to initialize a server object.                     '
+'                                                            '
+' scriptConfig - object for the global script configuration  '
+' srvConfig - configuration object of the server             '
+'------------------------------------------------------------'
+
+Sub initSrv(ByVal scriptConfig, ByRef srvConfig)
+	setSrvPath srvConfig
+	setSrvState scriptConfig, srvConfig
+	srvConfig.connected = false
+End Sub
+
+'-----------------------------------------------------'
+' Routine to set an absolute help server share path.  '
+'                                                     '
+' srvConfig - configuration object of the server      '
+'-----------------------------------------------------'
+
+Sub setSrvPath(ByRef srvConfig)
+	srvConfig.hPath = "\\" & srvConfig.hostname & "\" & srvConfig.sharePaths(0)
+End Sub
+
+'--------------------------------------------------------------------'
+' Routine to set server state by ping and share (FS) connectivity.   '
+'                                                                    '
+' scriptConfig - object for the global script configuration          '
+' srvConfig - configuration object of the server                     '
+'--------------------------------------------------------------------'
+
+Sub setSrvState(ByVal scriptConfig, ByRef srvConfig)
+	If Not retryPingServer(scriptConfig, srvConfig, true) Then
+		srvConfig.online = scriptConfig.fso.FolderExists(srvConfig.hPath)
+	Else
+		srvConfig.online = false
+	End If
+End Sub
+
+'-------------------------------------------------------------------'
+' Routine that checks if there is an offline server in the array.   '
+'                                                                   '
+' srvConfigs - array of server configurations                       '
+'-------------------------------------------------------------------'
+
+Function isSrvOffline(srvConfigs)
+	dim offline
+	offline = false
+	For i = 0 to uBound(srvConfigs)
+		If Not srvConfigs(i).online Then
+			offline = true
+			Exit For
+		End If
+	Next
+	isSrvOffline = offline
+End Function
+
+'------------------------------------------------------------------'
+' Routine that checks if there is an online server in the array.   '
+'                                                                  '
+' srvConfigs - array of server configurations                      '
+'------------------------------------------------------------------'
+
+Function isSrvOnline(srvConfigs)
+	dim online
+	online = false
+	For i = 0 to uBound(srvConfigs)
+		If srvConfigs(i).online Then
+			online = true
+			Exit For
+		End If
+	Next
+	isSrvOnline = online
+End Function
+
+'--------------------------------------------------------------'
+' Routine that dynamically adjusts wait time on retry count.   '
+'                                                              '
+' scriptConfig - object for the global script configuration    '
+' retries - number of already executed retries                 '
+'--------------------------------------------------------------'
+
+Function getReconWaitTime(scriptConfig, retries)
+	Dim reconWait
+	If retries <= 15 Then
+		reconWait = scriptConfig.reconWait
+	ElseIF retries > 15 And retries <= 30 Then
+		reconWait = scriptConfig.reconWait * 4
+	ElseIf retries > 30 And retries <= 45 Then
+		reconWait = scriptConfig.reconWait * 6
+	ElseIf retried > 45 And retries <= 60 Then
+		reconWait = scriptConfig.reconWait * 8
+	Else
+		reconWait = scriptConfig.reconWait * 10
+	End If
+	getReconWaitTime = reconWait
+End Function
+
+'-------------------------------------------------------------------------'
+' Routine that prints the debug output after every reconnect iteration.   '
+'                                                                         '
+' scriptConfig - object for the global script configuration               '
+' onSrvs - output string for online servers                               '
+' offSrvs - output string for offline servers                             '
+'-------------------------------------------------------------------------'
+
+Sub printDebug(scriptConfig, onSrvs, offSrvs)
+	Dim debugOut
+	If scriptConfig.debug Then
+	debugOut = ""
+		If Not (Len(onSrvs) = 0) Then
+			debugOut = "Server(s) online:" & Mid(onSrvs, 3, Len(onSrvs)-1)
+		End If
+		If Not (Len(onSrvs) = 0) And Not (Len(offSrvs) = 0) Then
+			debugOut = debugOut & vbNewLine
+		End If
+		If Not (Len(offSrvs) = 0) Then
+			debugOut = debugOut & "Server(s) offline:" & Mid(offSrvs, 3, Len(offSrvs)-1)
+		End If
+		MsgBox(debugOut)
+	End If
+End Sub
+
+'---------------------------------------------------------------'
+' Routine to add a server identification to an output string.   '
+'                                                               '
+' scriptConfig - object for the global script configuration     '
+' part - string on which the concat will be applied             '
+'---------------------------------------------------------------'
+
+Function getSrvDebugUnit(part, srvConfig)
+	getSrvDebugUnit = part & " | " & srvConfig.hostname
+End Function
+
+'-------------------------------------------------------------------'
+' Routine that checks server connectivity and tries to reconnect.   '
+' shares if the server is online.                                   '
+'                                                                   '
+' scriptConfig - object for the global script configuration         '
+' srvConfig - configuration object of the server                    '
+'-------------------------------------------------------------------'
+
+Sub checkNconnect(ByVal scriptConfig, ByRef srvConfig)
+	If Not retryPingServer(scriptConfig, srvConfig, true) Then
+		netUseServerShares scriptConfig, srvConfig
+	End If
+End Sub
+
+'----------------------------------------------------------------------------'
+' Routine to handle the connectivity of multiple servers and their shares.   '
+'                                                                            '
+' scriptConfig - object for the global script configuration                  '
+' srvConfigs - array of server configuration objects                         '
+'-----------------------------------------------------------------------------'
+
+Sub waitOnServersConnect(scriptConfig, srvConfigs)
+	Dim i, wait, offSrvs, onSrvs
+		
+	i = 0
+	initConfig scriptConfig
+	initSrvs scriptConfig, srvConfigs
+	While ((i <= scriptConfig.serverRetryCtn - 1 And isSrvOffline(srvConfigs)) Or (i = 0 And isSrvOnline(srvConfigs)))
+		offSrvs = ""
+		onSrvs = ""
+		wait = true
+		i = i + 1
+		
+		For j = 0 to uBound(srvConfigs)
+			If srvConfigs(j).online And Not srvConfigs(j).connected Then
+				checkNconnect scriptConfig, srvConfigs(j)
+				onSrvs = getSrvDebugUnit(onSrvs, srvConfigs(j))
+			End If
+		Next
+		
+		For j = 0 to uBound(srvConfigs)
+			If Not srvConfigs(j).online Then
+				If wait Then
+					WScript.Sleep getReconWaitTime(scriptConfig, i)
+					wait = false
+				End If
+				setSrvState scriptConfig, srvConfigs(j)
+				If srvConfigs(j).online Then
+					checkNconnect scriptConfig, srvConfigs(j)
+					onSrvs = getSrvDebugUnit(onSrvs, srvConfigs(j))
+				Else
+					offSrvs = getSrvDebugUnit(offSrvs, srvConfigs(j))
+				End If
+			End If
+		Next
+		printDebug scriptConfig, onSrvs, offSrvs
+	Wend
+End Sub
+
+'-----------------------------------------------------------------------------------'
+' This are the OPTIONAL script parameters which can be adapted to TUNE the          '
+' the script if it reconnects to slow or to MINIMIZE the overhead.                  '
+'                                                                                   '
+' pingWait - wait time after failed server ping                                     '
+' netUseWait - wait time after failed net use                                       '
+' reconWait - wait time after failed availability check                             '
+' pingCtn - how many pings per access request should be executed before giving up   '
+' netUseCtn - how many net use fails per reconnect are allowed before giving up     '
+' serverRetryCtn - how many overall reconnection tries should be executed           '
+' pingTimeout - how many milliseconds pass before the ping is canceled              '
+' debug - enable or disable debug messages on current reconnection state            '
+'-----------------------------------------------------------------------------------'
 
 Set scriptConfig = new ScriptConfiguration
-scriptConfig.pingWait = 250
-scriptConfig.netUseWait = 250
+scriptConfig.pingWait = 100
+scriptConfig.netUseWait = 0
 scriptConfig.reconWait = 2500
-scriptConfig.pingCtn = 3
-scriptConfig.netUseCtn = 3
+scriptConfig.pingCtn = 2
+scriptConfig.netUseCtn = 1
 scriptConfig.serverRetryCtn = 75
-scriptConfig.debug = 1
+scriptConfig.pingTimeout = 200
+scriptConfig.debug = false
 
-'-----------------------------------------------------------------------------------'
-' Here are the parameters which MUST be changed for your server or remote share.    '
-' If you want to use this script in your topology it's MANDATORY to change the      '
-' values below APPROPRIATELY.                                                       '
-'                                                                                   '
-' hostname - IP or hostname of the remote server (must be modified)                 '
-' sharePaths - all share paths on the server (must be modified)                     '
-' shareLetters - the share / drive letters for the defined paths (must be modified) '
-' netUsePersistent - should net use create a persistent share (yes/no)              '
-'-----------------------------------------------------------------------------------'
+'-------------------------------------------------------------------------------------'
+' Here are the parameters which MUST be changed for your server(s) and remote         '
+' share(s). If you want to use this script in your topology it's MANDATORY to         '
+' change the values below APPROPRIATELY.                                              '
+'                                                                                     '
+' hostname - IP or hostname of the remote server (must be modified)                   '
+' sharePaths - all share paths on the server (must be modified)                       '
+' shareLetters - the share / drive letters for the defined paths (must be modified)   '
+' netUsePersistent - should net use create a persistent share (yes/no)                '
+'-------------------------------------------------------------------------------------'
 
-Set srvConfig = New ServerConfiguration
-srvConfig.hostname = "192.168.1.1"
-srvConfig.sharePaths = Array("path\to\share1", "path\to\share2")
-srvConfig.shareLetters = Array("Z:", "Y:")
-srvConfig.netUsePersistent = "yes"
+'-------------------'
+' Configure Servers '
+'-------------------'
+
+'set srvCfgX = createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
+Set srvCfg1 = createSrvConfig("192.168.1.1", Array("path\to\share1", "path\to\share2"), Array("Z:", "Y:"), "yes")
+Set srvCfg2 = createSrvConfig("192.168.1.2", Array("path\to\share3", "path\to\share3"), Array("X:", "W:"), "yes")
 
 '--------------'
 ' Start Script '
 '--------------'
 
-waitOnServerConnect scriptConfig, srvConfig
+Dim srvConfigs
+srvConfigs = Array(srvCfg1, srvCfg2) 'add more server configurations here, if needed
+waitOnServersConnect scriptConfig, srvConfigs
