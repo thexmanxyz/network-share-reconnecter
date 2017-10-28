@@ -36,82 +36,176 @@ Class ScriptConfiguration
    Public pingCtn
    Public netUseCtn
    Public serverRetryCtn
+   Public shell
+   Public fso
    Public debug
 End Class
 
-'-------------------------------------------------------------------------------------------'
-' Routine to check server connectivity and try to reconnect shares if the server is online. '
-'                                                                                           '
-' srvConfig - configuration object of the server                                            '
-' scriptConfig - object for the global script configuration                                 '
-'-------------------------------------------------------------------------------------------'
+'-------------------------------------------------------------'
+' Routine to ping a server with a predfined configuration     '
+'                                                             '
+' scriptConfig - object for the global script configuration   '
+' srvConfig - configuration object of the server              '
+'-------------------------------------------------------------'
 
-sub checkNconnect(srvConfig, scriptConfig)
-	set WshShell = CREATEOBJECT("WScript.Shell")
-	dim i, offline, status, ctn, netUseCmd
+function pingServer(scriptConfig, srvConfig)
+	pingServer = scriptConfig.shell.Run("ping -n 1 " & srvConfig.hostname, 0, True)
+End Function
+
+'-------------------------------------------------------------'
+' Routine that tries to reach server with ping and failover   '
+'                                                             '
+' scriptConfig - object for the global script configuration   '
+' srvConfig - configuration object of the server              '
+'-------------------------------------------------------------'
+
+Function pingReachServer(scriptConfig, srvConfig)
+	Dim i, offline
 	
 	i = 0
 	offline = 1
-	while offline = 1 And i <= scriptConfig.pingCtn - 1
-		offline = WshShell.Run("ping -n 1 " & srvConfig.hostname, 0, True)
+	While offline = 1 And i <= scriptConfig.pingCtn - 1
+		offline = pingServer(scriptConfig, srvConfig)
 		i = i + 1
 		If offline = 1 Then
 			WScript.Sleep scriptConfig.pingWait
 		End If
-	wend
+	Wend
+	pingReachServer = offline
+	
+End Function
+
+'---------------------------------------------------------'
+' Routine to create a net use command for a share         '
+'                                                         '
+' srvConfig - configuration object of the server          '
+' pos - the current position of the share array           '
+'---------------------------------------------------------'
+
+Function createNetUseCmd(srvConfig, pos)
+	createNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " \\" & srvConfig.hostname & "\" & srvConfig.sharePaths(pos) & " /persistent:" & srvConfig.netUsePersistent
+End Function
+
+'---------------------------------------------------------------------'
+' Routine that tries to reconnect shares with net uses and failover   '
+'                                                                     '
+' scriptConfig - object for the global script configuration           '
+' srvConfig - configuration object of the server                      '
+'---------------------------------------------------------------------'
+
+Function netUseServerShares(scriptConfig, srvConfig)
+	Dim i, status, ctn
 	
 	i = 0
 	ctn = 0
 	status = 1
-	while status = 1 And i <= scriptConfig.netUseCtn - 1
+	While status = 1 And i <= scriptConfig.netUseCtn - 1
 		For j = 0 to uBound(srvConfig.sharePaths)
-			netUseCmd = "net use " & srvConfig.shareLetters(j) & " \\" & srvConfig.hostname & "\" & srvConfig.sharePaths(j) & " /persistent:" & srvConfig.netUsePersistent
-			If(ctn = 0) Then
-				status = WshShell.Run(netUseCmd, 0, True)
+			If ctn = 0 Then
+				status = scriptConfig.shell.Run(createNetUseCmd(srvConfig, j), 0, True)
 			Else
-				WshShell.Run netUseCmd, 0, True
+				scriptConfig.shell.Run createNetUseCmd(srvConfig, j), 0, True
 			End If
 			ctn = ctn + 1
-		next
+		Next
 		i = i + 1
 		If status = 1 Then
 			WScript.Sleep scriptConfig.netUseWait
 		End If
-	wend
-end sub
+	Wend
+End Function
+
+'-------------------------------------------------------------'
+' Routine to set server state by ping and share connectivity  '
+'                                                             '
+' scriptConfig - object for the global script configuration   '
+' srvConfig - configuration object of the server              '
+'-------------------------------------------------------------'
+
+Sub setSrvState(ByVal scriptConfig, ByRef srvConfig)
+	If pingReachServer(scriptConfig, srvConfig) = 0 Then
+		srvConfig.online = scriptConfig.fso.FolderExists(srvConfig.hPath)
+	Else
+		srvConfig.online = 0
+	End If
+End Sub
+
+'-------------------------------------------------------------'
+' Routine to set server help path                             '
+'                                                             '
+' srvConfig - configuration object of the server              '
+'-------------------------------------------------------------'
+
+Sub setSrvPath(ByRef srvConfig)
+	srvConfig.hPath = "\\" & srvConfig.hostname & "\" & srvConfig.sharePaths(0)
+End Sub
+
+'-------------------------------------------------------------'
+' Routine that dynamically adjusts wait time on retry count   '
+'                                                             '
+' scriptConfig - object for the global script configuration   '
+' retries - number of already executed retries                '
+'-------------------------------------------------------------'
+
+Function getReconWaitTime(scriptConfig, retries)
+	Dim reconWait
+	
+	If retries <= 25 Then
+		reconWait = scriptConfig.reconWait
+	ElseIf retries > 25 and retries <= 40 Then
+		reconWait = scriptConfig.reconWait * 6
+	Else
+		reconWait = scriptConfig.reconWait * 8
+	End If
+	
+	getReconWaitTime = reconWait
+End Function
+
+'-------------------------------------------------------------------------------------------'
+' Routine to check server connectivity and try to reconnect shares if the server is online. '
+'                                                                                           '
+' scriptConfig - object for the global script configuration                                 '
+' srvConfig - configuration object of the server                                            '
+'-------------------------------------------------------------------------------------------'
+
+Sub checkNconnect(scriptConfig, srvConfig)
+	status = pingReachServer(scriptConfig, srvConfig)
+	If status = 0 Then
+		netUseServerShares scriptConfig, srvConfig
+	End If
+End Sub
 
 '----------------------------------------------------------------------'
 ' Routine to check share availability and initiate share reconnection. '
 '                                                                      '
-' srvConfig - configuration object of the server                       '
 ' scriptConfig - object for the global script configuration            '
+' srvConfig - configuration object of the server                       '
 '----------------------------------------------------------------------'
 
-sub waitOnServerConnect(srvConfig, scriptConfig)
-	Set objFSO = CreateObject("Scripting.FileSystemObject")
-	dim i
+Sub waitOnServerConnect(scriptConfig, srvConfig)
+	Set scriptConfig.fso = CreateObject("Scripting.FileSystemObject")
+	Set scriptConfig.shell = CreateObject("WScript.Shell")
+	Dim i
 		
 	i = 0
-	srvConfig.hPath = "\\" & srvConfig.hostname & "\" & srvConfig.sharePaths(0)
-	srvConfig.online = objFSO.FolderExists(srvConfig.hPath)
-
-	If srvConfig.online Then
-		checkNconnect srvConfig, scriptConfig
-	Else
-		while i <= scriptConfig.serverRetryCtn - 1 And Not srvConfig.online
-			i = i + 1
-			If Not srvConfig.online Then
-				If scriptConfig.debug = 1 Then
-					MsgBox("Server still offline, keep waiting...")
-				End If
-				WScript.Sleep scriptConfig.reconWait
-				srvConfig.online = objFSO.FolderExists(srvConfig.hPath)
-				If srvConfig.online Then
-					checkNconnect srvConfig, scriptConfig
-				End If
+	setSrvPath srvConfig
+	setSrvState scriptConfig, srvConfig
+	While ((i <= scriptConfig.serverRetryCtn - 1 And Not srvConfig.online) Or (i = 0 And srvConfig.online))
+		i = i + 1
+		If Not srvConfig.online Then
+			If scriptConfig.debug = 1 Then
+				MsgBox("Server still offline, keep waiting...")
 			End If
-		wend
-	End If
+			
+			WScript.Sleep getReconWaitTime(scriptConfig, i)
+			setSrvState scriptConfig, srvConfig
+			If srvConfig.online Then
+				checkNconnect scriptConfig, srvConfig
+			End If
+		Else
+			checkNconnect scriptConfig, srvConfig
+		End If
+	Wend
 	If scriptConfig.debug = 1 And srvConfig.online Then
 		MsgBox("Server now online, drives reconnected!")
 	End If
@@ -131,13 +225,13 @@ end sub
 '-------------------------------------------------------------------------------'
 
 Set scriptConfig = new ScriptConfiguration
-scriptConfig.pingWait = 5000
-scriptConfig.netUseWait = 5000
-scriptConfig.reconWait = 10000
-scriptConfig.pingCtn = 5
-scriptConfig.netUseCtn = 5
-scriptConfig.serverRetryCtn = 15
-scriptConfig.debug = 0
+scriptConfig.pingWait = 250
+scriptConfig.netUseWait = 250
+scriptConfig.reconWait = 2500
+scriptConfig.pingCtn = 3
+scriptConfig.netUseCtn = 3
+scriptConfig.serverRetryCtn = 75
+scriptConfig.debug = 1
 
 '-----------------------------------------------------------------------------------'
 ' Here are the parameters which MUST be changed for your server or remote share.    '
@@ -160,4 +254,4 @@ srvConfig.netUsePersistent = "yes"
 ' Start Script '
 '--------------'
 
-waitOnServerConnect srvConfig, scriptConfig
+waitOnServerConnect scriptConfig, srvConfig
