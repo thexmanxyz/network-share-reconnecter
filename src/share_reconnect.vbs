@@ -392,7 +392,7 @@ Sub waitOnServersConnect(scriptConfig, srvConfigs)
 End Sub
 
 '-----------------------------------------------------------------------------------'
-' This are the OPTIONAL script parameters which can be adapted to TUNE the          '
+' These are the OPTIONAL script parameters which can be adapted to TUNE the         '
 ' the script if it reconnects to slow or to MINIMIZE the overhead.                  '
 '                                                                                   '
 ' pingWait - wait time after failed server ping                                     '
