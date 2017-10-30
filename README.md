@@ -3,6 +3,8 @@ This project contains a **VB script** and a **Windows Scheduler Task** to automa
 
 Many claim that the reconnect problem leads back to a timing problem during login and the establishment of the network connection with WLAN but there is no official statement from Microsoft as far as I know. There are many registry hacks out there which do not work and do not improve the described behaviour. Moreover this problem already exists for years so I now decided to create a reconnecter which reacts on network availability and share accessability.
 
+![1](/screenshots/drives.png)
+
 ## Prerequisites
 * Windows XP, 7, 8, 8.1, 10
 * little knowledge on Windows Task Scheduling
@@ -42,7 +44,7 @@ Here a short description of the available parameters which can be configured:
 
 ## Features
 * automatic reconnection of network drives and shares on logon or unlock of the workstation
-* stealth script execution (operates without exposing any prompts or windows except debug :P)
+* stealth script execution (operates without exposing any prompts or windows - except when debug enabled :P)
 * self determines server and share availability and accessability 
 * variable and flexible configuration of polling, timeouts and fallback handling
 * configuration of multiple servers together with their shares
