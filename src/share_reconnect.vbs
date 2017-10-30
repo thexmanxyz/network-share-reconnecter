@@ -430,14 +430,20 @@ scriptConfig.debug = false
 ' Configure Servers '
 '-------------------'
 
+Dim srvConfigs
+
+' Server Configurationa explanation with parametrs and variable names '
 'set srvCfgX = createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
+
+' Multi Server Configuration - two servers with two shares for each endpoint (please remove unnecessary lines) '
 Set srvCfg1 = createSrvConfig("192.168.1.1", Array("path\to\share1", "path\to\share2"), Array("Z:", "Y:"), "yes")
 Set srvCfg2 = createSrvConfig("192.168.1.2", Array("path\to\share3", "path\to\share3"), Array("X:", "W:"), "yes")
+
+'add more server configurations here or remove them if needed (remove "srvCfg2" for single server configuration)
+srvConfigs = Array(srvCfg1, srvCfg2) 
 
 '--------------'
 ' Start Script '
 '--------------'
 
-Dim srvConfigs
-srvConfigs = Array(srvCfg1, srvCfg2) 'add more server configurations here, if needed
 waitOnServersConnect scriptConfig, srvConfigs
