@@ -432,7 +432,7 @@ scriptConfig.debug = false
 
 Dim srvConfigs
 
-' Server Configurationa explanation with parametrs and variable names '
+' Server Configuration explanation with parameters and variable names '
 'set srvCfgX = createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
 
 ' Multi Server Configuration - two servers with two shares for each endpoint (please remove unnecessary lines) '
