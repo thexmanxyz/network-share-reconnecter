@@ -8,7 +8,7 @@
 '            periodically checked until they become available  '
 '            or when the reconnection threshold is hit.        '
 '                                                              '
-'   Author: Andreas Kar (thex) <andreas.kar@gmx.at >           '
+'   Author: Andreas Kar (thex) <andreas.kar@gmx.at>            '
 '--------------------------------------------------------------'
 
 '--------------------------------------------'
@@ -439,7 +439,7 @@ Dim srvConfigs
 Set srvCfg1 = createSrvConfig("192.168.1.1", Array("path\to\share1", "path\to\share2"), Array("Z:", "Y:"), "yes")
 Set srvCfg2 = createSrvConfig("192.168.1.2", Array("path\to\share3", "path\to\share3"), Array("X:", "W:"), "yes")
 
-' add more server configurations here or remove them if needed (remove "srvCfg2" for single server configuration)
+' add more server configurations here or remove them if needed (remove "srvCfg2" for single server configuration) '
 srvConfigs = Array(srvCfg1, srvCfg2) 
 
 '--------------'
