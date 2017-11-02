@@ -28,11 +28,11 @@ set prj_def_files=LICENSE, README.md
 
 REM --- Folder Variables ---
 set folder_root=..\..
-set folder_def=default
 set folder_src=src
 set folder_task=task
 set folder_temp=temp
 set folder_release=release
+set folder_def=default
 set folder_releases=releases
 set folder_release_dest=%folder_root%\%folder_releases%\%prj_rev%
 
