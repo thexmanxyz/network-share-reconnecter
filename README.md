@@ -13,7 +13,7 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 1. [Download v1.2.1](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.2.1/nsr.v1.2.1.zip) of the Network Share Reconnecter Package
 2. Extract the files
 3. modify the **share_reconnect.vbs**
-   * at least modify *hostname*, *sharePaths* and *shareLetters*
+   * at least modify `hostname`, `sharePaths` and `shareLetters`
    * multiple servers can be easily added and configured
 4. copy **share_reconnect.vbs** to a self defined directory
 5. Start Windows Task Scheduler: manually or with **taskschd.msc**
@@ -27,20 +27,20 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 Here a short description of the available parameters which can be configured:
 
 * Global Script Configuration
-  * pingWait - wait time after failed server ping
-  * netUseWait - wait time after failed net use
-  * reconWait - wait time after failed availability check
-  * pingCtn - how many pings per access request should be executed before giving up
-  * netUseCtn - how many *net use* fails per reconnect are allowed before giving up
-  * serverRetryCtn - how many overall reconnection tries should be executed
-  * pingTimeout - how many milliseconds pass before the ping is canceled
-  * debug - enable or disable debug messages on current reconnection state
+  * `pingWait` - wait time after failed server ping
+  * `netUseWait` - wait time after failed net use
+  * `reconWait` - wait time after failed availability check
+  * `pingCtn` - how many pings per access request should be executed before giving up
+  * `netUseCtn` - how many *net use* fails per reconnect are allowed before giving up
+  * `serverRetryCtn` - how many overall reconnection tries should be executed
+  * `pingTimeout` - how many milliseconds pass before the ping is canceled
+  * `debug` - enable or disable debug messages on current reconnection state
 
 * Server Configuration
-  * hostname - IP or hostname of the remote server **(must be modified)**
-  * sharePaths - all share paths on the server **(must be modified)**
-  * shareLetters - the share / drive letters for the defined paths **(must be modified)**
-  * netUsePersistent - should *net use* create a persistent share **(yes/no)**
+  * `hostname` - IP or hostname of the remote server **(must be modified)**
+  * `sharePaths` - all share paths on the server **(must be modified)**
+  * `shareLetters` - the share / drive letters for the defined paths **(must be modified)**
+  * `netUsePersistent` - should *net use* create a persistent share **(yes/no)**
 
 ## Features
 * automatic reconnection of network drives and shares on logon or unlock of the workstation
