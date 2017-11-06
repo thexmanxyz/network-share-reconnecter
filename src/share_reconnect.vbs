@@ -1,7 +1,7 @@
 '--------------------------------------------------------------'
 '   Network Share Reconnecter                                  '
 '                                                              '
-'   Purpose: This script tries to automatically reconnect      '
+'   Purpose: This project tries to automatically reconnect     '
 '            disconnected Windows network shares and drives    '
 '            if they are offline or are listed as offline.     '
 '            The current network and access state is           '

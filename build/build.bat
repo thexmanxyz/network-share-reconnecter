@@ -3,7 +3,7 @@ REM ################################################################
 REM #                                                              #
 REM #   Network Share Reconnecter                                  #
 REM #                                                              #
-REM #   Purpose: This script tries to automatically reconnect      #
+REM #   Purpose: This project tries to automatically reconnect     #
 REM #            disconnected Windows network shares and drives    #
 REM #            if they are offline or are listed as offline.     #
 REM #            The current network and access state is           #
@@ -44,6 +44,10 @@ set msg_release_success=Successful created Release "%prj_rev%". Packages moved t
 set msg_release_failed=Could not move packages to release folder "%prj_rev%", already exists.
 
 REM --- Start Script ---
+SETLOCAL EnableDelayedExpansion
+for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do (
+  set "DEL=%%a"
+)
 echo.
 echo -----------------------------
 echo # %prj_fullname% #
@@ -67,9 +71,9 @@ IF NOT EXIST %folder_release_dest% (
 	mkdir %folder_release_dest%
 	call :copy_folder_content "%folder_release%" "%folder_release_dest%"
 	IF "%log_files%" == "1" ( echo ------------------------- )
-	echo %msg_release_success%
+	call :ColorizeText 0a "%msg_release_success%"
 ) ELSE (
-	echo %msg_release_failed%
+	call :ColorizeText 0C "%msg_release_failed%"
 )
 
 REM --- Stop Script and Cleanup ---
@@ -77,7 +81,7 @@ IF %remove_folders% == 1 (
 	rmdir "%folder_temp%" /S /Q
 	rmdir "%folder_release%" /S /Q
 )
-echo %msg_finished%
+call :ColorizeText 0a "%msg_finished%"
 goto:EOF
 
 REM --- Create Release Package ---
@@ -138,3 +142,13 @@ REM --- Parameters: %~1 = package name, %~2 = output folder, %~3 = create zip, %
 		del !tar_dest!
 	)
 goto :EOF
+
+REM --- Colorizes Text ---
+REM --- Parameters: %~1 = Color Hex, %~2 = Output
+:ColorizeText
+echo off
+<nul set /p ".=%DEL%" > "%~2"
+findstr /v /a:%1 /R "^$" "%~2" nul
+del "%~2" > nul 2>&1
+echo.
+goto :eof
