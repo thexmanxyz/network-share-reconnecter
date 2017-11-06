@@ -49,7 +49,7 @@ Here a short description of the available parameters which can be configured:
 * variable and flexible configuration of polling, timeouts and fallback handling
 * configuration of multiple servers together with their shares
 * fast ICMP ping checks and adaptive intensity
-* scheduling task included (.xml) for easy import
+* scheduling task included (`.xml`) for easy import
 
 ## Future Tasks
 * net use analyze to better handle failure states
