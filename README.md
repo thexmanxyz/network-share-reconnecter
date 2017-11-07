@@ -16,7 +16,7 @@ Many claim that the reconnect problem leads back to a timing problem during logi
    * at least modify `hostname`, `sharePaths` and `shareLetters`
    * multiple servers can be easily added and configured
 4. copy **share_reconnect.vbs** to a self defined directory
-5. Start Windows Task Scheduler: manually or with **taskschd.msc**
+5. Start Windows Task Scheduler - manually or with **taskschd.msc**
 6. Import **Network_Share_Reconnecter.xml**
 7. Modify the Scheduler Task
    * at least change the path to the script which you have chosen before (or do it previously in the **Network_Share_Reconnecter.xml**)
