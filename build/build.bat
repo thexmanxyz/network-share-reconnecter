@@ -48,6 +48,7 @@ SETLOCAL EnableDelayedExpansion
 for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do (
   set "DEL=%%a"
 )
+
 echo.
 echo -----------------------------
 echo # %prj_fullname% #
@@ -109,6 +110,16 @@ REM --- Parameters: %~1 = source folder, %~2 = output folder
 :copy_general_files
 	IF "%log_files%" == "1" ( echo %~1 )
 	copy %~1 %~2 >Nul
+goto :EOF
+
+REM --- Copy and Include a subfolder in the package ---
+REM --- Parameters: %~1 = src folder path, %~2 = target folder path
+:copy_include_sub_folder
+	IF EXIST %folder_root%\%~1 (
+		set folder_out_js=!folder_out!\%~2
+		IF NOT EXIST !folder_out_js! ( mkdir !folder_out_js! )
+		call :copy_folder_content_ow "%folder_root%\%~1" "!folder_out_js!"
+	)
 goto :EOF
 
 REM --- Copies content of a folder and overwrites content
