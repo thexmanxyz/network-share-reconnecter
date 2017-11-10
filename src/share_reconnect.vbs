@@ -11,6 +11,65 @@
 '   Author: Andreas Kar (thex) <andreas.kar@gmx.at>            '
 '--------------------------------------------------------------'
 
+'-------------------------------------------------------------------------------------'
+'                                                                                     '
+'                                Configure Servers                                    '
+'                                                                                     '
+' Here are the parameters which MUST be changed for your server(s) and remote         '
+' share(s). If you want to use this script in your topology it's MANDATORY to         '
+' change the values below APPROPRIATELY.                                              '
+'                                                                                     '
+' hostname - IP or hostname of the remote server (must be modified)                   '
+' sharePaths - all share paths on the server (must be modified)                       '
+' shareLetters - the share / drive letters for the defined paths (must be modified)   '
+' netUsePersistent - should net use create a persistent share (yes/no)                '
+'-------------------------------------------------------------------------------------'
+
+Dim srvConfigs
+
+'Server Configuration explanation with parameters and variable names'
+'set srvCfgX = createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
+
+'Multi Server Configuration - two servers with two shares for each endpoint (please remove unnecessary lines)'
+Set srvCfg1 = createSrvConfig("192.168.1.1", Array("path\to\share1", "path\to\share2"), Array("Z:", "Y:"), "yes")
+Set srvCfg2 = createSrvConfig("192.168.1.2", Array("path\to\share3", "path\to\share3"), Array("X:", "W:"), "yes")
+
+'add more server configurations here or remove them if needed (remove "srvCfg2" for single server configuration)'
+srvConfigs = Array(srvCfg1, srvCfg2) 
+
+'-------------------------------------------------------------------------------------'
+'                                                                                     '
+'                                 Configure Script                                    '
+'                                                                                     '
+' These are the OPTIONAL script parameters which can be adapted to TUNE               '
+' the script if it reconnects to slow or to MINIMIZE the overhead.                    '
+'                                                                                     '
+' pingWait - wait time after failed server ping                                       '
+' netUseWait - wait time after failed net use                                         '
+' reconWait - wait time after failed availability check                               '
+' pingCtn - how many pings per access request should be executed before giving up     '
+' netUseCtn - how many net use fails per reconnect are allowed before giving up       '
+' serverRetryCtn - how many overall reconnection tries should be executed             '
+' pingTimeout - how many milliseconds pass before the ping is canceled                '
+' debug - enable or disable debug messages on current reconnection state              '
+'-------------------------------------------------------------------------------------'
+
+Set scriptConfig = new ScriptConfiguration
+scriptConfig.pingWait = 100
+scriptConfig.netUseWait = 0
+scriptConfig.reconWait = 2500
+scriptConfig.pingCtn = 2
+scriptConfig.netUseCtn = 1
+scriptConfig.serverRetryCtn = 75
+scriptConfig.pingTimeout = 200
+scriptConfig.debug = false
+
+'--------------'
+' Start Script '
+'--------------'
+
+waitOnServersConnect scriptConfig, srvConfigs
+
 '--------------------------------------------'
 ' Simple class for the server configuration. '
 '--------------------------------------------'
@@ -78,7 +137,7 @@ Function pingICMPServer(scriptConfig, srvConfig)
 	Dim ping, pEle, online
 	
 	online = false
-	Set ping = scriptConfig.winMgmts.ExecQuery(getWMIPingCmd(scriptConfig, srvConfig))								
+	Set ping = scriptConfig.winMgmts.ExecQuery(getWMIPingCmd(scriptConfig, srvConfig))
 	For each pEle in ping
 		online = Not IsNull(pEle.StatusCode) And pEle.StatusCode = 0
 		If Not online Then
@@ -390,60 +449,3 @@ Sub waitOnServersConnect(scriptConfig, srvConfigs)
 		printDebug scriptConfig, onSrvs, offSrvs
 	Wend
 End Sub
-
-'-----------------------------------------------------------------------------------'
-' These are the OPTIONAL script parameters which can be adapted to TUNE             '
-' the script if it reconnects to slow or to MINIMIZE the overhead.                  '
-'                                                                                   '
-' pingWait - wait time after failed server ping                                     '
-' netUseWait - wait time after failed net use                                       '
-' reconWait - wait time after failed availability check                             '
-' pingCtn - how many pings per access request should be executed before giving up   '
-' netUseCtn - how many net use fails per reconnect are allowed before giving up     '
-' serverRetryCtn - how many overall reconnection tries should be executed           '
-' pingTimeout - how many milliseconds pass before the ping is canceled              '
-' debug - enable or disable debug messages on current reconnection state            '
-'-----------------------------------------------------------------------------------'
-
-Set scriptConfig = new ScriptConfiguration
-scriptConfig.pingWait = 100
-scriptConfig.netUseWait = 0
-scriptConfig.reconWait = 2500
-scriptConfig.pingCtn = 2
-scriptConfig.netUseCtn = 1
-scriptConfig.serverRetryCtn = 75
-scriptConfig.pingTimeout = 200
-scriptConfig.debug = false
-
-'-------------------------------------------------------------------------------------'
-' Here are the parameters which MUST be changed for your server(s) and remote         '
-' share(s). If you want to use this script in your topology it's MANDATORY to         '
-' change the values below APPROPRIATELY.                                              '
-'                                                                                     '
-' hostname - IP or hostname of the remote server (must be modified)                   '
-' sharePaths - all share paths on the server (must be modified)                       '
-' shareLetters - the share / drive letters for the defined paths (must be modified)   '
-' netUsePersistent - should net use create a persistent share (yes/no)                '
-'-------------------------------------------------------------------------------------'
-
-'-------------------'
-' Configure Servers '
-'-------------------'
-
-Dim srvConfigs
-
-' Server Configuration explanation with parameters and variable names '
-'set srvCfgX = createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
-
-' Multi Server Configuration - two servers with two shares for each endpoint (please remove unnecessary lines) '
-Set srvCfg1 = createSrvConfig("192.168.1.1", Array("path\to\share1", "path\to\share2"), Array("Z:", "Y:"), "yes")
-Set srvCfg2 = createSrvConfig("192.168.1.2", Array("path\to\share3", "path\to\share3"), Array("X:", "W:"), "yes")
-
-' add more server configurations here or remove them if needed (remove "srvCfg2" for single server configuration) '
-srvConfigs = Array(srvCfg1, srvCfg2) 
-
-'--------------'
-' Start Script '
-'--------------'
-
-waitOnServersConnect scriptConfig, srvConfigs
