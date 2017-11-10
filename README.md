@@ -10,18 +10,18 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 * little knowledge on Windows Task Scheduling
 
 ## Download / Installation
-1. [Download v1.2.2](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.2.2/nsr.v1.2.2.zip) of the Network Share Reconnecter Package
-2. Extract the files
-3. modify the sample configuration in the **share_reconnect.vbs** script file
-   * at least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L34-L35))
-   * multiple servers can be easily added and configured
-4. copy **share_reconnect.vbs** to a self defined directory
-5. Start Windows Task Scheduler - manually or with **taskschd.msc**
-6. Import **Network_Share_Reconnecter.xml**
-7. Modify the Scheduler Task
-   * at least change the path to the script which you have chosen before (or do it previously in the **Network_Share_Reconnecter.xml**)
-   * (Optional) change the user for the defined triggers, by default all computer users will be affected by the script
-   * (Optional) extend / modify the Scheduler Task depending on your favor and preferences
+1. [Download v1.2.2](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.2.2/nsr.v1.2.2.zip) of the Network Share Reconnecter Package.
+2. Extract the files.
+3. Modify the sample configuration in the **share_reconnect.vbs** script file.
+   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L34-L35)).
+   * Multiple servers can be easily added and configured.
+4. Copy **share_reconnect.vbs** to a self defined directory.
+5. Start Windows Task Scheduler - manually or with **taskschd.msc**.
+6. Import **Network_Share_Reconnecter.xml**.
+7. Modify the Scheduler Task.
+   * At least change the path to the script which you have chosen before (or do it previously in the **Network_Share_Reconnecter.xml**).
+   * (Optional) Change the user for the defined triggers, by default all computer users will be affected by the script.
+   * (Optional) Extend or modify the Scheduler Task depending on your favor and preferences.
 
 ## Configuration and Parameters
 Here a short description of the available parameters which can be configured:
@@ -43,13 +43,13 @@ Here a short description of the available parameters which can be configured:
   * `netUsePersistent` - should *net use* create a persistent share **(yes/no)**
 
 ## Features
-* automatic reconnection of network drives and shares on logon or unlock of the workstation
-* stealth script execution (operates without exposing any prompts or windows - except when debug is enabled :P)
-* self determines server and share availability and accessability 
-* variable and flexible configuration of polling, timeouts and fallback handling
-* configuration of multiple servers together with their shares
-* fast ICMP ping checks and adaptive intensity
-* scheduling task included (`.xml`) for easy import
+* Automatic reconnection of network drives and shares on logon or unlock of the workstation.
+* Stealth script execution (operates without exposing any prompts or windows - except when debug is enabled :P).
+* Self determines server and share availability and accessability.
+* Variable and flexible configuration of polling, timeouts and fallback handling.
+* Configuration of multiple servers together with their shares.
+* Fast ICMP ping checks and adaptive intensity.
+* Scheduling task included (`.xml`) for easy import.
 
 ## Future Tasks
 * net use analyze to better handle failure states
