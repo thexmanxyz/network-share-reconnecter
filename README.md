@@ -53,6 +53,8 @@ Here a short description of the available parameters which can be configured:
 
 ## Future Tasks
 * net use analyze to better handle failure states
+* install script or app
+* permanent task / hook on event?
 
 ## Known Issues
 None
