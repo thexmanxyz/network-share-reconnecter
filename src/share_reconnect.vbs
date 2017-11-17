@@ -212,7 +212,7 @@ Sub netUseServerShares(ByVal scriptConfig, ByRef srvConfig)
 			WScript.Sleep scriptConfig.netUseWait
 		End If
 	Wend
-	srvConfig.connected = false
+	srvConfig.connected = true
 End Sub
 
 '------------------------------------------------------------------------'
