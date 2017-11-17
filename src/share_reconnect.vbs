@@ -181,8 +181,8 @@ End Function
 '------------------------------------------------------------'
 
 Function getNetUseCmd(srvConfig, pos)
-	getNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " \\" & srvConfig.hostname _ 
-				   & "\" & srvConfig.sharePaths(pos) & " /persistent:" & srvConfig.netUsePersistent
+	getNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " " & chr(34) & "\\" & srvConfig.hostname _ 
+				   & "\" & srvConfig.sharePaths(pos) & chr(34) & " /persistent:" & srvConfig.netUsePersistent
 End Function
 
 '----------------------------------------------------------------------'
