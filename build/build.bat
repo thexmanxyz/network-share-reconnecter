@@ -20,7 +20,7 @@ set log_files=0
 
 REM --- Packaging Variables --
 set prj_id=nsr
-set prj_rev=v1.2.2
+set prj_rev=v1.2.3
 set prj_fullname=Network Share Reconnecter
 
 REM --- File Variables ---
