@@ -102,13 +102,13 @@ Class ScriptConfiguration
 	Public debug
 End Class
 
-'-----------------------------------------------------------------'
-' Routine to Shell ping a server with a predfined configuration.  '
-' (not used because ping does not return correct status)          '
-'                                                                 '
-' scriptConfig - object for the global script configuration       '
-' srvConfig - configuration object of the server                  '
-'-----------------------------------------------------------------'
+'------------------------------------------------------------------'
+' Routine to shell ping a server with a predefined configuration.  '
+' (not used because ping does not return correct status)           '
+'                                                                  '
+' scriptConfig - object for the global script configuration        '
+' srvConfig - configuration object of the server                   '
+'------------------------------------------------------------------'
 
 Function pingServer(scriptConfig, srvConfig)
 	pingServer = scriptConfig.shell.Run("ping -n 1 " & srvConfig.hostname, 0, True)
