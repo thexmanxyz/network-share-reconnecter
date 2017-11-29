@@ -5,8 +5,9 @@
 '            disconnected Windows network shares and drives    '
 '            if they are offline or are listed as offline.     '
 '            The current network and access state is           '
-'            periodically checked until they become available  '
-'            or when the reconnection threshold is hit.        '
+'            periodically checked until the server is          '
+'            available or when the reconnection threshold      '
+'            is hit without establishing any connectivity.     '
 '                                                              '
 '   Author: Andreas Kar (thex) <andreas.kar@gmx.at>            '
 '--------------------------------------------------------------'
@@ -238,11 +239,32 @@ End Sub
 
 Function createSrvConfig(hostname, sharePaths, shareLetters, netUsePersistent)
 	Set srvCfg = New ServerConfiguration
+	
+	'trim share paths if necessary (remove leading '\')
+	trimSharePaths sharePaths
+
+	'create server configuration
 	srvCfg.hostname = hostname
 	srvCfg.sharePaths = sharePaths
 	srvCfg.shareLetters = shareLetters
 	srvCfg.netUsePersistent = netUsePersistent
 	Set createSrvConfig = srvCfg
+	
+End Function
+
+
+'--------------------------------------------------------------------'
+' Trims leading '\' from share paths if exist.                       '
+'                                                                    '
+' sharePaths - array that contains share paths                       '
+'--------------------------------------------------------------------'
+
+Function trimSharePaths(ByRef sharePaths)
+	For j = 0 to uBound(sharePaths)
+		If Len(sharePaths(j)) > 0 And InStr(1, sharePaths(j), "\") = 1 Then
+			sharePaths(j) = Mid(sharePaths(j), 2, Len(sharePaths(j))-1)
+		End If
+	Next
 End Function
 
 '------------------------------------------------------------'
