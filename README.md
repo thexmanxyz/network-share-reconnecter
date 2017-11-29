@@ -26,6 +26,12 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 ## Configuration and Parameters
 Here a short description of the available parameters which can be configured:
 
+* Server Configuration
+  * `hostname` - IP or hostname of the remote server **(must be modified)**
+  * `sharePaths` - all share paths on the server **(must be modified)**
+  * `shareLetters` - the share / drive letters for the defined paths **(must be modified)**
+  * `netUsePersistent` - should *net use* create a persistent share **(yes/no)**
+  
 * Global Script Configuration
   * `pingWait` - wait time after failed server ping
   * `netUseWait` - wait time after failed net use
@@ -35,12 +41,6 @@ Here a short description of the available parameters which can be configured:
   * `serverRetryCtn` - how many overall reconnection tries should be executed
   * `pingTimeout` - how many milliseconds pass before the ping is canceled
   * `debug` - enable or disable debug messages on current reconnection state
-
-* Server Configuration
-  * `hostname` - IP or hostname of the remote server **(must be modified)**
-  * `sharePaths` - all share paths on the server **(must be modified)**
-  * `shareLetters` - the share / drive letters for the defined paths **(must be modified)**
-  * `netUsePersistent` - should *net use* create a persistent share **(yes/no)**
 
 ## Features
 * Automatic reconnection of network drives and shares on logon or unlock of the workstation.
