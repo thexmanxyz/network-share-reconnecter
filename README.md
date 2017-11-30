@@ -31,13 +31,13 @@ Here a short description of the available parameters which can be configured:
   * `sharePaths` - all share paths on the server **(must be modified)**
   * `shareLetters` - the share / drive letters for the defined paths **(must be modified)**
   * `persistent` - should *net use* create a persistent share **(yes/no)**
-  * `user` - username for net use authentication if required **(optional)**
-  * `password` - password for net use authentication if required **(optional)**
+  * `user` - username for *net use* authentication if required **(optional)**
+  * `password` - password for *net use* authentication if required **(optional)**
   * `secure` - defines whether the HTTP or HTTPS protocol should be used **(URI only)**
   
 * Global Script Configuration
   * `pingWait` - wait time after failed server ping
-  * `netUseWait` - wait time after failed net use
+  * `netUseWait` - wait time after failed *net use*
   * `reconWait` - wait time after failed availability check
   * `pingCtn` - how many pings per access request should be executed before giving up
   * `netUseCtn` - how many *net use* fails per reconnect are allowed before giving up
