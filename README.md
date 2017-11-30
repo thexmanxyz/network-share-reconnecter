@@ -10,10 +10,10 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 * little knowledge on Windows Task Scheduling
 
 ## Download / Installation
-1. [Download v1.2.5](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.2.5/nsr.v1.2.5.zip) of the Network Share Reconnecter Package.
+1. [Download v1.3.0](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.0/nsr.v1.3.0.zip) of the Network Share Reconnecter Package.
 2. Extract the files.
 3. Modify the sample configuration in the **share_reconnect.vbs** script file.
-   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L35-L36) and [Issue #1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
+   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L41-L43) and [Issue #1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
    * Multiple servers can be easily added and configured.
 4. Copy **share_reconnect.vbs** to a self defined directory.
 5. Start Windows Task Scheduler - manually or with **taskschd.msc**.
@@ -30,7 +30,10 @@ Here a short description of the available parameters which can be configured:
   * `hostname` - IP or hostname of the remote server **(must be modified)**
   * `sharePaths` - all share paths on the server **(must be modified)**
   * `shareLetters` - the share / drive letters for the defined paths **(must be modified)**
-  * `netUsePersistent` - should *net use* create a persistent share **(yes/no)**
+  * `persistent` - should *net use* create a persistent share **(yes/no)**
+  * `user` - username for net use authentication if required **(optional)**
+  * `password` - password for net use authentication if required **(optional)**
+  * `secure` - defines whether the HTTP or HTTPS protocol should be used **(URI only)**
   
 * Global Script Configuration
   * `pingWait` - wait time after failed server ping
@@ -41,6 +44,17 @@ Here a short description of the available parameters which can be configured:
   * `serverRetryCtn` - how many overall reconnection tries should be executed
   * `pingTimeout` - how many milliseconds pass before the ping is canceled
   * `debug` - enable or disable debug messages on current reconnection state
+
+### UNC Example Configuration
+If your share is accessible over an UNC path like `\\\192.168.1.1\path\to\share` use this configuration.
+
+`Set srvCfgUnc = createUncSrvConfig("192.168.1.1", Array("path\to\share"), Array("Z:"), "yes")`
+
+
+### URI Example Configuration
+If you share needs to be accessed over HTTP(s) like `http://my.webserver.com/path/to/share` use this configuration.
+
+`Set srvCfgUri = createUncSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", true)`
 
 ## Features
 * Automatic reconnection of network drives and shares on logon or unlock of the workstation.
