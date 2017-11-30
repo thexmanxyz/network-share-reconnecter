@@ -45,13 +45,13 @@ Here a short description of the available parameters which can be configured:
   * `pingTimeout` - how many milliseconds pass before the ping is canceled
   * `debug` - enable or disable debug messages on current reconnection state
 
-### UNC Example Configuration
+### UNC Sample Configuration
 If your share is accessible over an UNC path like `\\192.168.1.1\path\to\share`. Use this configuration:
 
 `createUncSrvConfig("192.168.1.1", Array("path\to\share"), Array("Z:"), "yes", "", "")`
 
 
-### URI Example Configuration
+### URI Sample Configuration
 If you share needs to be accessed over HTTP(S) like `http://my.webserver.com/path/to/share`. Use this configuration:
 
 `createUncSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", "", "", true)`
