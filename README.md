@@ -46,15 +46,15 @@ Here a short description of the available parameters which can be configured:
   * `debug` - enable or disable debug messages on current reconnection state
 
 ### UNC Example Configuration
-If your share is accessible over an UNC path like `\\\192.168.1.1\path\to\share` use this configuration.
+If your share is accessible over an UNC path like `\\192.168.1.1\path\to\share` use this configuration.
 
-`Set srvCfgUnc = createUncSrvConfig("192.168.1.1", Array("path\to\share"), Array("Z:"), "yes")`
+`Set srvCfgUnc = createUncSrvConfig("192.168.1.1", Array("path\to\share"), Array("Z:"), "yes", "", "")`
 
 
 ### URI Example Configuration
 If you share needs to be accessed over HTTP(s) like `http://my.webserver.com/path/to/share` use this configuration.
 
-`Set srvCfgUri = createUncSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", true)`
+`Set srvCfgUri = createUncSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", "", "", true)`
 
 ## Features
 * Automatic reconnection of network drives and shares on logon or unlock of the workstation.
