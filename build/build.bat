@@ -7,8 +7,9 @@ REM #   Purpose: This project tries to automatically reconnect     #
 REM #            disconnected Windows network shares and drives    #
 REM #            if they are offline or are listed as offline.     #
 REM #            The current network and access state is           #
-REM #            periodically checked until they become available  #
-REM #            or when the reconnection threshold is hit.        #
+REM #            periodically checked until the server is          #
+REM #            available or when the reconnection threshold      #
+REM #            is hit without establishing any connectivity.     #
 REM #                                                              #
 REM #   Author: Andreas Kar (thex) <andreas.kar@gmx.at>            #
 REM #                                                              #
