@@ -54,7 +54,7 @@ If your share is accessible over an UNC path like `\\192.168.1.1\path\to\share`.
 ### URI Sample Configuration
 If you share needs to be accessed over HTTP(S) like `http://my.webserver.com/path/to/share`.
 
-`createUriSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", "", "", true)`
+`createUriSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", "", "", false)`
 
 ## Features
 * Automatic reconnection of network drives and shares on logon or unlock of the workstation.
