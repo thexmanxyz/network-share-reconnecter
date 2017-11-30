@@ -138,9 +138,7 @@ Sub waitOnServersConnect(scriptConfig, srvConfigs)
 				If Not srvConfigs(j).connected Then
 					checkNconnect scriptConfig, srvConfigs(j)
 				End If
-				If srvConfigs(j).connected Then
-					onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
-				End If
+				onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
 			End If
 		Next
 		
@@ -236,6 +234,7 @@ Function createSrvConfig(hostname, sharePaths, shareLetters, persistent, user, p
 	srvCfg.password = password
 	srvCfg.isUri = isUri
 	srvCfg.secure = secure
+	
 	Set createSrvConfig = srvCfg
 End Function
 
@@ -285,12 +284,14 @@ End Sub
 
 Sub setSrvPath(ByRef srvConfig)
 	Dim testPath, hPath
+	
 	hPath = trimSharePath(srvConfig.sharePaths(0), srvConfig.isUri)
 	If(srvConfig.isUri) Then
 		testPath = createUriPath(srvConfig.hostname, hPath, srvConfig.secure)
 	Else
 		testPath = createUncPath(srvConfig.hostname, hPath)
 	End If
+	
 	srvConfig.fsTestPath = testPath
 End Sub
 
@@ -375,6 +376,7 @@ Function trimSharePath(sharePath, isUri)
 			hPath = Mid(hPath, 1, hLen - 1)
 		End If
 	End If
+	
 	trimSharePath = hPath
 End Function
 
@@ -420,6 +422,7 @@ Function pingICMPServer(scriptConfig, srvConfig)
 			Exit For
 		End If
 	Next
+	
 	pingICMPServer = Not online
 End Function
 
@@ -447,6 +450,7 @@ Function retryPingServer(scriptConfig, srvConfig, icmp)
 			WScript.Sleep scriptConfig.pingWait
 		End If
 	Wend
+	
 	retryPingServer = offline
 End Function
 
@@ -503,6 +507,7 @@ Sub netUseServerShares(ByVal scriptConfig, ByRef srvConfig)
 			WScript.Sleep scriptConfig.netUseWait
 		End If
 	Wend
+	
 	srvConfig.connected = true
 End Sub
 
@@ -533,6 +538,7 @@ End Sub
 
 Function isSrvOffline(srvConfigs)
 	Dim offline
+	
 	offline = false
 	For i = 0 to uBound(srvConfigs)
 		If Not srvConfigs(i).online Then
@@ -540,6 +546,7 @@ Function isSrvOffline(srvConfigs)
 			Exit For
 		End If
 	Next
+	
 	isSrvOffline = offline
 End Function
 
@@ -551,6 +558,7 @@ End Function
 
 Function isSrvOnline(srvConfigs)
 	Dim online
+	
 	online = false
 	For i = 0 to uBound(srvConfigs)
 		If srvConfigs(i).online Then
@@ -558,6 +566,7 @@ Function isSrvOnline(srvConfigs)
 			Exit For
 		End If
 	Next
+	
 	isSrvOnline = online
 End Function
 
@@ -570,6 +579,7 @@ End Function
 
 Function getReconWaitTime(scriptConfig, retries)
 	Dim reconWait
+	
 	If retries <= 15 Then
 		reconWait = scriptConfig.reconWait
 	ElseIF retries > 15 And retries <= 30 Then
@@ -581,6 +591,7 @@ Function getReconWaitTime(scriptConfig, retries)
 	Else
 		reconWait = scriptConfig.reconWait * 10
 	End If
+	
 	getReconWaitTime = reconWait
 End Function
 
@@ -609,6 +620,7 @@ Sub printDebug(scriptConfig, onSrvs, offSrvs)
 		If Not (offLen = 0) Then
 			debugOut = debugOut & "Server(s) offline:" & Mid(offSrvs, 3, offLen - 1)
 		End If
+		
 		MsgBox(debugOut)
 	End If
 End Sub
