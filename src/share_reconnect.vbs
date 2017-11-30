@@ -134,11 +134,13 @@ Sub waitOnServersConnect(scriptConfig, srvConfigs)
 		i = i + 1
 		
 		For j = 0 to uBound(srvConfigs)
-			If srvConfigs(j).online And Not srvConfigs(j).connected Then
-				checkNconnect scriptConfig, srvConfigs(j)
-			End If
 			If srvConfigs(j).online Then
-				onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
+				If Not srvConfigs(j).connected Then
+					checkNconnect scriptConfig, srvConfigs(j)
+				End If
+				If srvConfigs(j).connected Then
+					onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
+				End If
 			End If
 		Next
 		
