@@ -46,13 +46,13 @@ Here a short description of the available parameters which can be configured:
   * `debug` - enable or disable debug messages on current reconnection state
 
 ### UNC Sample Configuration
-If your share is accessible over an UNC path like `\\192.168.1.1\path\to\share`.
+If your share is accessible over an UNC path like `\\192.168.1.1\path\to\share` use:
 
 `createUncSrvConfig("192.168.1.1", Array("path\to\share"), Array("Z:"), "yes", "", "")`
 
 
 ### URI Sample Configuration
-If you share needs to be accessed over HTTP(S) like `http://my.webserver.com/path/to/share`.
+If you share needs to be accessed over HTTP(S) like `http://my.webserver.com/path/to/share` use:
 
 `createUriSrvConfig("my.webserver.com", Array("path/to/share"), Array("Z:"), "yes", "", "", false)`
 
