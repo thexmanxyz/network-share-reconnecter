@@ -40,7 +40,7 @@ Dim srvConfigs
 'Multi Server Configuration - three servers with two shares for each endpoint [remove unnecessary lines]'
 Set srvCfg1 = createUncSrvConfig("192.168.1.1", Array("path\to\share1", "path\to\share2"), Array("Z:", "Y:"), "yes", "", "")
 Set srvCfg2 = createUncSrvConfig("192.168.1.2", Array("path\to\share3", "path\to\share4"), Array("X:", "W:"), "yes", "", "")
-Set srvCfg3 = createUriSrvConfig("my.web.server", Array("path/to/share5", "path/to/share6"), Array("X:", "W:"), "yes", "", "", true)
+Set srvCfg3 = createUriSrvConfig("my.web.server", Array("path/to/share5", "path/to/share6"), Array("T:", "U:"), "yes", "", "", true)
 
 'add more server configurations here or remove them if needed [remove srvCfg2 and srvCfg3 for single server configuration]'
 srvConfigs = Array(srvCfg1, srvCfg2, srvCfg3) 
