@@ -67,7 +67,8 @@ If you share needs to be accessed over HTTP(S) like `http://my.webserver.com/pat
 
 ## Future Tasks
 * net use analyze to better handle failure states
-* install script or app
+* load script config from XML
+* install and configuration app (script)
 * permanent task / hook on event?
 
 ## Known Issues
