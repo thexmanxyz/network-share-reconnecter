@@ -10,7 +10,7 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 * little knowledge on Windows Task Scheduling
 
 ## Download / Installation
-1. [Download v1.3.2](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.2/nsr.v1.3.2.zip) of the Network Share Reconnecter Package.
+1. [Download v1.3.3](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.3/nsr.v1.3.3.zip) of the Network Share Reconnecter Package.
 2. Extract the files.
 3. Modify the sample configuration in the **share_reconnect.vbs** script file.
    * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L41-L43) and [Issue #1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
