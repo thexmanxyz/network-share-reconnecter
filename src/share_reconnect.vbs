@@ -416,12 +416,14 @@ Function pingICMPServer(scriptConfig, srvConfig)
 	
 	online = false
 	Set ping = scriptConfig.winMgmts.ExecQuery(getWMIPingCmd(scriptConfig, srvConfig))
-	For each pEle in ping
-		online = Not isNull(pEle) And Not IsNull(pEle.StatusCode) And pEle.StatusCode = 0
-		If Not online Then
-			Exit For
-		End If
-	Next
+	If Not isNull(ping) Then
+		For each pEle in ping
+			online = Not isNull(pEle) And Not IsNull(pEle.StatusCode) And pEle.StatusCode = 0
+			If Not online Then
+				Exit For
+			End If
+		Next
+	End If
 	
 	pingICMPServer = Not online
 End Function
