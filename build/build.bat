@@ -84,7 +84,7 @@ IF %remove_folders% == 1 (
 	rmdir "%folder_release%" /S /Q
 )
 call :ColorizeText 0a "%msg_finished%"
-goto: EOF
+goto :EOF
 
 REM --- Create Release Package ---
 REM --- Parameters: %~1 = destination folder package
