@@ -59,6 +59,7 @@ srvConfigs = Array(srvCfg1, srvCfg2, srvCfg3)
 ' netUseCtn - how many net use fails per reconnect are allowed before giving up       '
 ' serverRetryCtn - how many overall reconnection tries should be executed             '
 ' pingTimeout - how many milliseconds pass before the ping is canceled                '
+' pingDefaultSrv - use common server if target service rejects pings (URI only)       '
 ' debug - enable or disable debug messages on current reconnection state              '
 '-------------------------------------------------------------------------------------'
 
@@ -70,6 +71,7 @@ scriptConfig.pingCtn = 2
 scriptConfig.netUseCtn = 1
 scriptConfig.serverRetryCtn = 75
 scriptConfig.pingTimeout = 200
+scriptConfig.pingDefaultSrv = false
 scriptConfig.debug = false
 
 '--------------'
@@ -108,6 +110,7 @@ Class ScriptConfiguration
 	Public netUseCtn
 	Public serverRetryCtn
 	Public pingTimeout
+	Public pingDefaultSrv
 	Public winMgmts
 	Public shell
 	Public fso
@@ -400,8 +403,17 @@ End Function
 '-------------------------------------------------------------'
 
 Function getWMIPingCmd(scriptConfig, srvConfig)
+	Dim hostname
+	
+	'use default ping target if defined and server is URI target
+	If scriptConfig.pingDefaultSrv And srvConfig.isUri Then
+		hostname = "8.8.8.8"
+	Else
+		hostname = srvConfig.hostname
+	End If
+
 	getWMIPingCmd = "select * from Win32_PingStatus where TimeOut = " _ 
-					& scriptConfig.pingTimeout & " and address = '" & srvConfig.hostname & "'"
+					& scriptConfig.pingTimeout & " and address = '" & hostname & "'"
 End Function
 
 '-----------------------------------------------------------------'
@@ -587,7 +599,7 @@ Function getReconWaitTime(scriptConfig, retries)
 	
 	If retries <= 15 Then
 		reconWait = scriptConfig.reconWait
-	ElseIF retries > 15 And retries <= 30 Then
+	ElseIf retries > 15 And retries <= 30 Then
 		reconWait = scriptConfig.reconWait * 4
 	ElseIf retries > 30 And retries <= 45 Then
 		reconWait = scriptConfig.reconWait * 6

@@ -10,7 +10,7 @@ Many claim that the reconnect problem leads back to a timing problem during logi
 * little knowledge on Windows Task Scheduling
 
 ## Download / Installation
-1. [Download v1.3.3](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.3/nsr.v1.3.3.zip) of the Network Share Reconnecter Package.
+1. [Download v1.3.4](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.4/nsr.v1.3.4.zip) of the Network Share Reconnecter Package.
 2. Extract the files.
 3. Modify the sample configuration in the **share_reconnect.vbs** script file.
    * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L41-L43) and [Issue #1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
@@ -43,6 +43,7 @@ Here a short description of the available parameters which can be configured:
   * `netUseCtn` - how many *net use* fails per reconnect are allowed before giving up
   * `serverRetryCtn` - how many overall reconnection tries should be executed
   * `pingTimeout` - how many milliseconds pass before the ping is canceled
+  * `pingDefaultSrv` - use common server if target service rejects pings **(URI only)**
   * `debug` - enable or disable debug messages on current reconnection state
 
 ### UNC Sample Configuration
