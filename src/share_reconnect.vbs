@@ -392,7 +392,7 @@ End Function
 '------------------------------------------------------------------'
 
 Function pingServer(scriptConfig, srvConfig)
-	pingServer = scriptConfig.shell.Run("ping -n 1 " & srvConfig.hostname, 0, True)
+	pingServer = scriptConfig.shell.Run("ping -n 1 " & getPingHostname(scriptConfig, srvConfig), 0, True)
 End Function
 
 '-------------------------------------------------------------'
@@ -403,6 +403,18 @@ End Function
 '-------------------------------------------------------------'
 
 Function getWMIPingCmd(scriptConfig, srvConfig)
+	getWMIPingCmd = "select * from Win32_PingStatus where TimeOut = " _ 
+					& scriptConfig.pingTimeout & " and address = '" & getPingHostname(scriptConfig, srvConfig) & "'"
+End Function
+
+'-------------------------------------------------------------'
+' Routine to return the ping host in dependence of settings.  '
+'                                                             '
+' scriptConfig - object for the global script configuration   '
+' srvConfig - configuration object of the server              '
+'-------------------------------------------------------------'
+
+Function getPingHostname(scriptConfig, srvConfig)
 	Dim hostname
 	
 	'use default ping target if defined and server is URI target
@@ -411,9 +423,8 @@ Function getWMIPingCmd(scriptConfig, srvConfig)
 	Else
 		hostname = srvConfig.hostname
 	End If
-
-	getWMIPingCmd = "select * from Win32_PingStatus where TimeOut = " _ 
-					& scriptConfig.pingTimeout & " and address = '" & hostname & "'"
+	
+	getPingHostname = hostname
 End Function
 
 '-----------------------------------------------------------------'
