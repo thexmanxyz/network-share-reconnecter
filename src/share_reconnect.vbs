@@ -548,7 +548,7 @@ End Sub
 
 Sub setSrvState(ByVal scriptConfig, ByRef srvConfig)
 	If Not retryPingServer(scriptConfig, srvConfig, true) Then
-		If srvConfig.isUri Then
+		If Len(srvConfig.user) > 0 Then
 			srvConfig.online = true
 		Else
 			srvConfig.online = scriptConfig.fso.FolderExists(srvConfig.fsTestPath)
