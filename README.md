@@ -3,7 +3,9 @@ This project contains a **VB script** and a **Windows Scheduler Task** to automa
 
 Many claim that the reconnect problem leads back to a timing problem during login and the establishment of the network connection over WLAN but there is no official statement from Microsoft as far as I know. There are many registry hacks out there which do not work and do not improve the described behaviour. Moreover this problem already exists for years so I now decided to create a reconnecter which reacts on network availability and share accessability.
 
-![1](/screenshots/drives.png)
+![1](/screenshots/drives_off_on.png)
+
+![2](/screenshots/drives_nc_on.png)
 
 ## Prerequisites
 * Windows XP, 7, 8, 8.1, 10
