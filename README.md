@@ -4,12 +4,12 @@ This project contains a **VB script** and a **Windows Scheduler Task** to automa
 Many claim that the reconnect problem leads back to a timing problem during login and the establishment of the network connection over WLAN but there is no official statement from Microsoft as far as I know. There are many registry hacks out there which do not work and do not improve the described behaviour. Moreover this problem already exists for years so I now decided to create a reconnecter which reacts on network availability and share accessability.
 
 ## Reconnect offline network shares
-Example for a reconnect for a drive which was wrongly recognized by Windows as offline.
+Example for a reconnect of a drive which was wrongly recognized by Windows as offline.
 
 ![2](/screenshots/drives_off_on.png)
 
 ## Reconnect not-connected network shares
-Example for a reconnect for a drive which was recognized by Windows as not-connected.
+Example for a reconnect of a drive which was recognized by Windows as not-connected.
 
 ![3](/screenshots/drives_nc_on.png)
 
