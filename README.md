@@ -73,6 +73,7 @@ If your share needs to be accessed over HTTP(S) like `http://my.webserver.com/pa
 * Configuration of multiple servers together with their shares.
 * Fast ICMP ping checks and adaptive intensity.
 * Scheduling task included (`.xml`) for easy import.
+* optimized, adaptive and fast reconnection in comparison to simple scripts.
 
 ## Future Tasks
 * net use analyze to better handle failure states
