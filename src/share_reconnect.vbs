@@ -74,7 +74,7 @@ scriptConfig.netUseCtn = 1
 scriptConfig.serverRetryCtn = 75
 scriptConfig.pingTimeout = 200
 scriptConfig.pingDefaultSrv = false
-scriptConfig.debug = true
+scriptConfig.debug = false
 
 '--------------'
 ' Start Script '
