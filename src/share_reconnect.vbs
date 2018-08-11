@@ -55,6 +55,7 @@ srvConfigs = Array(srvCfg1, srvCfg2, srvCfg3)
 ' pingWait - wait time after failed server ping                                       '
 ' netUseWait - wait time after failed net use                                         '
 ' reconWait - wait time after failed availability check                               '
+' reconAdaptive - boolean to enable automatic reconnection intensity or not           '
 ' pingCtn - how many pings per access request should be executed before giving up     '
 ' netUseCtn - how many net use fails per reconnect are allowed before giving up       '
 ' serverRetryCtn - how many overall reconnection tries should be executed             '
@@ -67,12 +68,13 @@ Set scriptConfig = new ScriptConfiguration
 scriptConfig.pingWait = 100
 scriptConfig.netUseWait = 0
 scriptConfig.reconWait = 2500
+scriptConfig.reconAdaptive = true
 scriptConfig.pingCtn = 2
 scriptConfig.netUseCtn = 1
 scriptConfig.serverRetryCtn = 75
 scriptConfig.pingTimeout = 200
 scriptConfig.pingDefaultSrv = false
-scriptConfig.debug = false
+scriptConfig.debug = true
 
 '--------------'
 ' Start Script '
@@ -106,6 +108,7 @@ Class ScriptConfiguration
 	Public pingWait
 	Public netUseWait
 	Public reconWait
+	Public reconAdaptive
 	Public pingCtn
 	Public netUseCtn
 	Public serverRetryCtn
@@ -130,30 +133,34 @@ Sub waitOnServersConnect(scriptConfig, srvConfigs)
 	i = 0
 	initConfig scriptConfig
 	initSrvs scriptConfig, srvConfigs
-	While ((i <= scriptConfig.serverRetryCtn - 1 And isSrvOffline(srvConfigs)) Or (i = 0 And isSrvOnline(srvConfigs)))
+	While (i <= scriptConfig.serverRetryCtn - 1 And (i = 0 Or isSrvOffline(srvConfigs)))
 		offSrvs = ""
 		onSrvs = ""
 		wait = true
 		i = i + 1
-		
+	
+		' Establish share connection if remote server found
 		For j = 0 to uBound(srvConfigs)
 			If srvConfigs(j).online Then
 				If Not srvConfigs(j).connected Then
-					checkNconnect scriptConfig, srvConfigs(j)
+					netUseServerShares scriptConfig, srvConfigs(j)
 				End If
 				onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
 			End If
 		Next
 		
+		' Penalty for servers not responding and try to reconnect
 		For j = 0 to uBound(srvConfigs)
 			If Not srvConfigs(j).online Then
 				If wait Then
-					WScript.Sleep getReconWaitTime(scriptConfig, i)
+					WScript.Sleep getReconWait(scriptConfig, i)
 					wait = false
 				End If
-				setSrvState scriptConfig, srvConfigs(j)
+				
+				' Check if server responded and try to reconnect
+				checkSrvState scriptConfig, srvConfigs(j)
 				If srvConfigs(j).online Then
-					checkNconnect scriptConfig, srvConfigs(j)
+					netUseServerShares scriptConfig, srvConfigs(j)
 					onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
 				Else
 					offSrvs = getSrvDebug(offSrvs, srvConfigs(j))
@@ -162,20 +169,6 @@ Sub waitOnServersConnect(scriptConfig, srvConfigs)
 		Next
 		printDebug scriptConfig, onSrvs, offSrvs
 	Wend
-End Sub
-
-'-------------------------------------------------------------------'
-' Routine that checks server connectivity and tries to reconnect    '
-' shares if the server is online.                                   '
-'                                                                   '
-' scriptConfig - object for the global script configuration         '
-' srvConfig - configuration object of the server                    '
-'-------------------------------------------------------------------'
-
-Sub checkNconnect(ByVal scriptConfig, ByRef srvConfig)
-	If Not retryPingServer(scriptConfig, srvConfig, true) Then
-		netUseServerShares scriptConfig, srvConfig
-	End If
 End Sub
 
 '--------------------------------------------------------------------'
@@ -275,7 +268,7 @@ End Sub
 
 Sub initSrv(ByVal scriptConfig, ByRef srvConfig)
 	setSrvPath srvConfig
-	setSrvState scriptConfig, srvConfig
+	checkSrvState scriptConfig, srvConfig
 	srvConfig.connected = false
 End Sub
 
@@ -546,7 +539,7 @@ End Sub
 ' srvConfig - configuration object of the server                     '
 '--------------------------------------------------------------------'
 
-Sub setSrvState(ByVal scriptConfig, ByRef srvConfig)
+Sub checkSrvState(ByVal scriptConfig, ByRef srvConfig)
 	If Not retryPingServer(scriptConfig, srvConfig, true) Then
 		If Len(srvConfig.user) > 0 Then
 			srvConfig.online = true
@@ -565,17 +558,7 @@ End Sub
 '-------------------------------------------------------------------'
 
 Function isSrvOffline(srvConfigs)
-	Dim offline
-	
-	offline = false
-	For i = 0 to uBound(srvConfigs)
-		If Not srvConfigs(i).online Then
-			offline = true
-			Exit For
-		End If
-	Next
-	
-	isSrvOffline = offline
+	isSrvOffline = isSrvState(srvConfigs, false)
 End Function
 
 '------------------------------------------------------------------'
@@ -585,17 +568,29 @@ End Function
 '------------------------------------------------------------------'
 
 Function isSrvOnline(srvConfigs)
+	isSrvOnline = isSrvState(srvConfigs, true)
+End Function
+
+
+'------------------------------------------------------------------'
+' Routine that checks if there is an server with a specific state  '
+' in the array.                                                    '
+'                                                                  '
+' srvConfigs - array of server configurations                      '
+'------------------------------------------------------------------'
+
+Function isSrvState(srvConfigs, state)
 	Dim online
 	
 	online = false
 	For i = 0 to uBound(srvConfigs)
-		If srvConfigs(i).online Then
+		If srvConfigs(i).online = state Then
 			online = true
 			Exit For
 		End If
 	Next
 	
-	isSrvOnline = online
+	isSrvState = online
 End Function
 
 '--------------------------------------------------------------'
@@ -605,22 +600,27 @@ End Function
 ' retries - number of already executed retries                 '
 '--------------------------------------------------------------'
 
-Function getReconWaitTime(scriptConfig, retries)
-	Dim reconWait
+Function getReconWait(scriptConfig, retries)	
+	dim coEff
+	dim reconWait
 	
-	If retries <= 15 Then
-		reconWait = scriptConfig.reconWait
-	ElseIf retries > 15 And retries <= 30 Then
-		reconWait = scriptConfig.reconWait * 4
-	ElseIf retries > 30 And retries <= 45 Then
-		reconWait = scriptConfig.reconWait * 6
-	ElseIf retried > 45 And retries <= 60 Then
-		reconWait = scriptConfig.reconWait * 8
+	If scriptConfig.reconAdaptive Then
+		coEff = Fix(retries / 15)
+		
+		If coEff >= 5 Then
+			coEff = 10
+		ElseIf coEff >= 1 Then
+			coEff = coEff * 2
+		Else
+			coEff = 1
+		End If
+	
+		reconWait = scriptConfig.reconWait * coEff
 	Else
-		reconWait = scriptConfig.reconWait * 10
+		reconWait = scriptConfig.reconWait
 	End If
 	
-	getReconWaitTime = reconWait
+	getReconWait = reconWait
 End Function
 
 '-------------------------------------------------------------------------'
@@ -640,13 +640,13 @@ Sub printDebug(scriptConfig, onSrvs, offSrvs)
 		debugOut = ""
 		
 		If Not (onLen = 0) Then
-			debugOut = "Server(s) online:" & Mid(onSrvs, 3, onLen - 1)
+			debugOut = "Server(s) online: " & onSrvs
 		End If
 		If Not (onLen = 0) And Not (offLen = 0) Then
 			debugOut = debugOut & vbNewLine
 		End If
 		If Not (offLen = 0) Then
-			debugOut = debugOut & "Server(s) offline:" & Mid(offSrvs, 3, offLen - 1)
+			debugOut = debugOut & "Server(s) offline: " & offSrvs
 		End If
 		
 		MsgBox(debugOut)
@@ -661,5 +661,12 @@ End Sub
 '---------------------------------------------------------------'
 
 Function getSrvDebug(part, srvConfig)
-	getSrvDebug = part & " | " & srvConfig.hostname
+	dim seperator
+	If part = "" Then
+		seperator = ""
+	Else 
+		seperator = " | "
+	End If
+
+	getSrvDebug = part & seperator & srvConfig.hostname
 End Function
