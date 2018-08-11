@@ -25,7 +25,7 @@ Example for a reconnect of a drive which was recognized by Windows as not-connec
    * Multiple servers can be easily added and configured.
 4. Copy **share_reconnect.vbs** to a self defined directory.
 5. Start Windows Task Scheduler - manually or with **taskschd.msc**.
-6. Import **Network_Share_Reconnecter.xml**.
+6. Import **Network_Share_Reconnecter.xml** - there are different versions for Windows 7 and 10.
 7. Modify the Scheduler Task.
    * At least change the path to the script which you have chosen before (or do it previously in the **Network_Share_Reconnecter.xml**).
    * (Optional) Change the user for the defined triggers, by default all computer users will be affected by the script.
@@ -74,6 +74,7 @@ If your share needs to be accessed over HTTP(S) like `http://my.webserver.com/pa
 * Configuration of multiple servers together with their shares.
 * Fast ICMP ping checks and adaptive intensity.
 * Scheduling task included (`.xml`) for easy import.
+* optimized, adaptive and fast reconnection in comparison to simple scripts.
 
 ## Future Tasks
 * net use analyze to better handle failure states
