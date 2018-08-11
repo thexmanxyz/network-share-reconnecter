@@ -25,7 +25,7 @@ Example for a reconnect of a drive which was recognized by Windows as not-connec
    * Multiple servers can be easily added and configured.
 4. Copy **share_reconnect.vbs** to a self defined directory.
 5. Start Windows Task Scheduler - manually or with **taskschd.msc**.
-6. Import **Network_Share_Reconnecter.xml**.
+6. Import **Network_Share_Reconnecter.xml** - there are different versions for Windows 7 and 10.
 7. Modify the Scheduler Task.
    * At least change the path to the script which you have chosen before (or do it previously in the **Network_Share_Reconnecter.xml**).
    * (Optional) Change the user for the defined triggers, by default all computer users will be affected by the script.
