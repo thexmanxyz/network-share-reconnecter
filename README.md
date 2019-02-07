@@ -87,4 +87,4 @@ If your share needs to be accessed over HTTP(S) like `http://my.webserver.com/pa
 None
 
 ## by [thex](https://github.com/thexmanxyz)
-Copyright (c) 2018, free to use in personal and commercial software as per the [license](/LICENSE.md).
+Copyright (c) 2019, free to use in personal and commercial software as per the [license](/LICENSE.md).
