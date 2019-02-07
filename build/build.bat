@@ -12,6 +12,7 @@ REM #            available or when the reconnection threshold      #
 REM #            is hit without establishing any connectivity.     #
 REM #                                                              #
 REM #   Author: Andreas Kar (thex) <andreas.kar@gmx.at>            #
+REM #   Repository: https://git.io/fAHSm                           #
 REM #                                                              #
 REM ################################################################
 

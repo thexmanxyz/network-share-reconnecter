@@ -10,6 +10,8 @@
 '            is hit without establishing any connectivity.     '
 '                                                              '
 '   Author: Andreas Kar (thex) <andreas.kar@gmx.at>            '
+'   Repository: https://git.io/fAHSm                           '
+'                                                              '
 '--------------------------------------------------------------'
 
 '-------------------------------------------------------------------------------------'
@@ -52,28 +54,30 @@ srvConfigs = Array(srvCfg1, srvCfg2, srvCfg3)
 ' These are the OPTIONAL script parameters which can be adapted to TUNE               '
 ' the script if it reconnects to slow or to MINIMIZE the overhead.                    '
 '                                                                                     '
+' pingEnabled - defines whether the script should use ping availability check         '
 ' pingWait - wait time after failed server ping                                       '
+' pingTimeout - how many milliseconds pass before the ping is canceled                '
+' pingCtn - how many pings per access request should be executed before giving up     '
+' pingDefaultSrv - use common server if target service rejects pings (URI only)       '
 ' netUseWait - wait time after failed net use                                         '
+' netUseCtn - how many net use fails per reconnect are allowed before giving up       '
 ' reconWait - wait time after failed availability check                               '
 ' reconAdaptive - boolean to enable automatic reconnection intensity or not           '
-' pingCtn - how many pings per access request should be executed before giving up     '
-' netUseCtn - how many net use fails per reconnect are allowed before giving up       '
 ' serverRetryCtn - how many overall reconnection tries should be executed             '
-' pingTimeout - how many milliseconds pass before the ping is canceled                '
-' pingDefaultSrv - use common server if target service rejects pings (URI only)       '
 ' debug - enable or disable debug messages on current reconnection state              '
 '-------------------------------------------------------------------------------------'
 
 Set scriptConfig = new ScriptConfiguration
+scriptConfig.pingEnabled = true
 scriptConfig.pingWait = 100
+scriptConfig.pingTimeout = 200
+scriptConfig.pingCtn = 2
+scriptConfig.pingDefaultSrv = false
 scriptConfig.netUseWait = 0
+scriptConfig.netUseCtn = 1
 scriptConfig.reconWait = 2500
 scriptConfig.reconAdaptive = true
-scriptConfig.pingCtn = 2
-scriptConfig.netUseCtn = 1
 scriptConfig.serverRetryCtn = 75
-scriptConfig.pingTimeout = 200
-scriptConfig.pingDefaultSrv = false
 scriptConfig.debug = false
 
 '--------------'
@@ -87,17 +91,17 @@ waitOnServersConnect scriptConfig, srvConfigs
 '--------------------------------------------'
 
 Class ServerConfiguration
-	Public hostname
-	Public sharePaths
-	Public shareLetters
-	Public persistent
-	Public user
-	Public password
-	Public isUri
-	Public secure
-	Public online
-	Public connected
-	Public fsTestPath
+    Public hostname
+    Public sharePaths
+    Public shareLetters
+    Public persistent
+    Public user
+    Public password
+    Public isUri
+    Public secure
+    Public online
+    Public connected
+    Public fsTestPath
 End Class
 
 '--------------------------------------------'
@@ -105,19 +109,20 @@ End Class
 '--------------------------------------------'
 
 Class ScriptConfiguration
-	Public pingWait
-	Public netUseWait
-	Public reconWait
-	Public reconAdaptive
-	Public pingCtn
-	Public netUseCtn
-	Public serverRetryCtn
-	Public pingTimeout
-	Public pingDefaultSrv
-	Public winMgmts
-	Public shell
-	Public fso
-	Public debug
+    Public pingEnabled
+    Public pingWait
+    Public pingTimeout
+    Public pingCtn
+    Public pingDefaultSrv
+    Public netUseWait
+    Public netUseCtn
+    Public reconWait
+    Public reconAdaptive
+    Public serverRetryCtn
+    Public debug
+    Public winMgmts
+    Public shell
+    Public fso
 End Class
 
 '----------------------------------------------------------------------------'
@@ -125,50 +130,50 @@ End Class
 '                                                                            '
 ' scriptConfig - object for the global script configuration                  '
 ' srvConfigs - array of server configuration objects                         '
-'-----------------------------------------------------------------------------'
+'----------------------------------------------------------------------------'
 
 Sub waitOnServersConnect(scriptConfig, srvConfigs)
-	Dim i, wait, offSrvs, onSrvs
-		
-	i = 0
-	initConfig scriptConfig
-	initSrvs scriptConfig, srvConfigs
-	While (i <= scriptConfig.serverRetryCtn - 1 And (i = 0 Or isSrvOffline(srvConfigs)))
-		offSrvs = ""
-		onSrvs = ""
-		wait = true
-		i = i + 1
-	
-		' Establish share connection if remote server found
-		For j = 0 to uBound(srvConfigs)
-			If srvConfigs(j).online Then
-				If Not srvConfigs(j).connected Then
-					netUseServerShares scriptConfig, srvConfigs(j)
-				End If
-				onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
-			End If
-		Next
-		
-		' Penalty for servers not responding and try to reconnect
-		For j = 0 to uBound(srvConfigs)
-			If Not srvConfigs(j).online Then
-				If wait Then
-					WScript.Sleep getReconWait(scriptConfig, i)
-					wait = false
-				End If
-				
-				' Check if server responded and try to reconnect
-				checkSrvState scriptConfig, srvConfigs(j)
-				If srvConfigs(j).online Then
-					netUseServerShares scriptConfig, srvConfigs(j)
-					onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
-				Else
-					offSrvs = getSrvDebug(offSrvs, srvConfigs(j))
-				End If
-			End If
-		Next
-		printDebug scriptConfig, onSrvs, offSrvs
-	Wend
+    Dim i, wait, offSrvs, onSrvs
+        
+    i = 0
+    initConfig scriptConfig
+    initSrvs scriptConfig, srvConfigs
+    While (i <= scriptConfig.serverRetryCtn - 1 And (i = 0 Or isSrvOffline(srvConfigs)))
+        offSrvs = ""
+        onSrvs = ""
+        wait = true
+        i = i + 1
+    
+        ' Establish share connection if remote server found
+        For j = 0 to uBound(srvConfigs)
+            If srvConfigs(j).online Then
+                If Not srvConfigs(j).connected Then
+                    netUseServerShares scriptConfig, srvConfigs(j)
+                End If
+                onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
+            End If
+        Next
+        
+        ' Penalty for servers not responding and try to reconnect
+        For j = 0 to uBound(srvConfigs)
+            If Not srvConfigs(j).online Then
+                If wait Then
+                    WScript.Sleep getReconWait(scriptConfig, i)
+                    wait = false
+                End If
+                
+                ' Check if server responded and try to reconnect
+                checkSrvState scriptConfig, srvConfigs(j)
+                If srvConfigs(j).online Then
+                    netUseServerShares scriptConfig, srvConfigs(j)
+                    onSrvs = getSrvDebug(onSrvs, srvConfigs(j))
+                Else
+                    offSrvs = getSrvDebug(offSrvs, srvConfigs(j))
+                End If
+            End If
+        Next
+        printDebug scriptConfig, onSrvs, offSrvs
+    Wend
 End Sub
 
 '--------------------------------------------------------------------'
@@ -183,7 +188,7 @@ End Sub
 '--------------------------------------------------------------------'
 
 Function createUncSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password)
-	Set createUncSrvConfig = createSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password, false, false)
+    Set createUncSrvConfig = createSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password, false, false)
 End Function
 
 '--------------------------------------------------------------------'
@@ -199,7 +204,7 @@ End Function
 '--------------------------------------------------------------------'
 
 Function createUriSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password, secure)
-	Set createUriSrvConfig = createSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password, true, secure)
+    Set createUriSrvConfig = createSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password, true, secure)
 End Function
 
 '--------------------------------------------------------------------'
@@ -216,22 +221,22 @@ End Function
 '--------------------------------------------------------------------'
 
 Function createSrvConfig(hostname, sharePaths, shareLetters, persistent, user, password, isUri, secure)
-	Set srvCfg = New ServerConfiguration
-	
-	'trim share paths if necessary (remove leading and trailing slash)
-	trimSharePaths sharePaths, isUri
+    Set srvCfg = New ServerConfiguration
+    
+    'trim share paths if necessary (remove leading and trailing slash)
+    trimSharePaths sharePaths, isUri
 
-	'create server configuration
-	srvCfg.hostname = hostname
-	srvCfg.sharePaths = sharePaths
-	srvCfg.shareLetters = shareLetters
-	srvCfg.persistent = persistent
-	srvCfg.user = user
-	srvCfg.password = password
-	srvCfg.isUri = isUri
-	srvCfg.secure = secure
-	
-	Set createSrvConfig = srvCfg
+    'create server configuration
+    srvCfg.hostname = hostname
+    srvCfg.sharePaths = sharePaths
+    srvCfg.shareLetters = shareLetters
+    srvCfg.persistent = persistent
+    srvCfg.user = user
+    srvCfg.password = password
+    srvCfg.isUri = isUri
+    srvCfg.secure = secure
+    
+    Set createSrvConfig = srvCfg
 End Function
 
 '------------------------------------------------------------------------'
@@ -241,9 +246,9 @@ End Function
 '------------------------------------------------------------------------'
 
 Sub initConfig(ByRef scriptConfig)
-	Set scriptConfig.winMgmts = GetObject("winmgmts:{impersonationLevel=impersonate}")
-	Set scriptConfig.fso = CreateObject("Scripting.FileSystemObject")
-	Set scriptConfig.shell = CreateObject("WScript.Shell")
+    Set scriptConfig.winMgmts = GetObject("winmgmts:{impersonationLevel=impersonate}")
+    Set scriptConfig.fso = CreateObject("Scripting.FileSystemObject")
+    Set scriptConfig.shell = CreateObject("WScript.Shell")
 End Sub
 
 '------------------------------------------------------------'
@@ -254,9 +259,9 @@ End Sub
 '------------------------------------------------------------'
 
 Sub initSrvs(ByVal scriptConfig, ByRef srvConfigs)
-	For i = 0 to uBound(srvConfigs)
-		initSrv scriptConfig, srvConfigs(i)
-	Next
+    For i = 0 to uBound(srvConfigs)
+        initSrv scriptConfig, srvConfigs(i)
+    Next
 End Sub
 
 '------------------------------------------------------------'
@@ -267,9 +272,9 @@ End Sub
 '------------------------------------------------------------'
 
 Sub initSrv(ByVal scriptConfig, ByRef srvConfig)
-	setSrvPath srvConfig
-	checkSrvState scriptConfig, srvConfig
-	srvConfig.connected = false
+    setSrvPath srvConfig
+    checkSrvState scriptConfig, srvConfig
+    srvConfig.connected = false
 End Sub
 
 '-----------------------------------------------------'
@@ -279,16 +284,16 @@ End Sub
 '-----------------------------------------------------'
 
 Sub setSrvPath(ByRef srvConfig)
-	Dim testPath, hPath
-	
-	hPath = trimSharePath(srvConfig.sharePaths(0), srvConfig.isUri)
-	If(srvConfig.isUri) Then
-		testPath = createUriPath(srvConfig.hostname, hPath, srvConfig.secure)
-	Else
-		testPath = createUncPath(srvConfig.hostname, hPath)
-	End If
-	
-	srvConfig.fsTestPath = testPath
+    Dim testPath, hPath
+    
+    hPath = trimSharePath(srvConfig.sharePaths(0), srvConfig.isUri)
+    If(srvConfig.isUri) Then
+        testPath = createUriPath(srvConfig.hostname, hPath, srvConfig.secure)
+    Else
+        testPath = createUncPath(srvConfig.hostname, hPath)
+    End If
+    
+    srvConfig.fsTestPath = testPath
 End Sub
 
 '--------------------------------------------------------------------'
@@ -299,7 +304,7 @@ End Sub
 '--------------------------------------------------------------------'
 
 Function createUncPath(host, path)
-	createUncPath = "\\" & host & "\" & path
+    createUncPath = "\\" & host & "\" & path
 End Function
 
 '--------------------------------------------------------------------'
@@ -311,20 +316,20 @@ End Function
 '--------------------------------------------------------------------'
 
 Function createUriPath(host, path, secure)
-	Dim protocol, hPath
-	If secure Then
-		protocol = "https"
-	Else
-		protocol = "http"
-	End If
-	
-	If Len(path) > 0 Then
-		hPath = "/" & path
-	Else
-		hPath = path
-	End If
-	
-	createUriPath = protocol & "://" & host & hPath
+    Dim protocol, hPath
+    If secure Then
+        protocol = "https"
+    Else
+        protocol = "http"
+    End If
+    
+    If Len(path) > 0 Then
+        hPath = "/" & path
+    Else
+        hPath = path
+    End If
+    
+    createUriPath = protocol & "://" & host & hPath
 End Function
 
 '--------------------------------------------------------------------'
@@ -335,9 +340,9 @@ End Function
 '--------------------------------------------------------------------'
 
 Function trimSharePaths(ByRef sharePaths, isUri)
-	For j = 0 to uBound(sharePaths)
-		sharePaths(j) = trimSharePath(sharePaths(j), isUri)
-	Next
+    For j = 0 to uBound(sharePaths)
+        sharePaths(j) = trimSharePath(sharePaths(j), isUri)
+    Next
 End Function
 
 '--------------------------------------------------------------------'
@@ -348,32 +353,32 @@ End Function
 '--------------------------------------------------------------------'
 
 Function trimSharePath(sharePath, isUri)
-	Dim hPath, hLen, slash
+    Dim hPath, hLen, slash
 
-	If isUri Then
-		slash = "/"
-	Else
-		slash = "\"
-	End If
-	
-	'remove leading slash
-	hPath = sharePath
-	hLen = Len(hPath)
-	If hLen > 0 Then
-		If InStr(1, hPath, slash) = 1 Then
-			hPath = Mid(hPath, 2, hLen - 1)
-		End If
-	End If
-	
-	'remove trailing slash only if UNC
-	hLen = Len(hPath)
-	If Not isUri And hLen > 0 Then
-		If InStr(hLen, hPath, slash) = hLen Then
-			hPath = Mid(hPath, 1, hLen - 1)
-		End If
-	End If
-	
-	trimSharePath = hPath
+    If isUri Then
+        slash = "/"
+    Else
+        slash = "\"
+    End If
+    
+    'remove leading slash
+    hPath = sharePath
+    hLen = Len(hPath)
+    If hLen > 0 Then
+        If InStr(1, hPath, slash) = 1 Then
+            hPath = Mid(hPath, 2, hLen - 1)
+        End If
+    End If
+    
+    'remove trailing slash only if UNC
+    hLen = Len(hPath)
+    If Not isUri And hLen > 0 Then
+        If InStr(hLen, hPath, slash) = hLen Then
+            hPath = Mid(hPath, 1, hLen - 1)
+        End If
+    End If
+    
+    trimSharePath = hPath
 End Function
 
 '------------------------------------------------------------------'
@@ -384,8 +389,8 @@ End Function
 ' srvConfig - configuration object of the server                   '
 '------------------------------------------------------------------'
 
-Function pingServer(scriptConfig, srvConfig)
-	pingServer = scriptConfig.shell.Run("ping -n 1 " & getPingHostname(scriptConfig, srvConfig), 0, True)
+Function pingCMD(scriptConfig, srvConfig)
+    pingCMD = scriptConfig.shell.Run("ping -n 1 " & getPingHostname(scriptConfig, srvConfig), 0, True)
 End Function
 
 '-------------------------------------------------------------'
@@ -396,8 +401,8 @@ End Function
 '-------------------------------------------------------------'
 
 Function getWMIPingCmd(scriptConfig, srvConfig)
-	getWMIPingCmd = "select * from Win32_PingStatus where TimeOut = " _ 
-					& scriptConfig.pingTimeout & " and address = '" & getPingHostname(scriptConfig, srvConfig) & "'"
+    getWMIPingCmd = "select * from Win32_PingStatus where Timeout = " _ 
+                    & scriptConfig.pingTimeout & " and Address = '" & getPingHostname(scriptConfig, srvConfig) & "'"
 End Function
 
 '-------------------------------------------------------------'
@@ -408,43 +413,43 @@ End Function
 '-------------------------------------------------------------'
 
 Function getPingHostname(scriptConfig, srvConfig)
-	Dim hostname
-	
-	'use default ping target if defined and server is URI target
-	If scriptConfig.pingDefaultSrv And srvConfig.isUri Then
-		hostname = "8.8.8.8"
-	Else
-		hostname = srvConfig.hostname
-	End If
-	
-	getPingHostname = hostname
+    Dim hostname
+    
+    'use default ping target if defined and server is URI target
+    If scriptConfig.pingDefaultSrv And srvConfig.isUri Then
+        hostname = "8.8.8.8"
+    Else
+        hostname = srvConfig.hostname
+    End If
+    
+    getPingHostname = hostname
 End Function
 
 '-----------------------------------------------------------------'
-' Routine to ICMP ping a server with a predfined configuration.   '
+' Routine to WMI ping a server with a predfined configuration.    '
 '                                                                 '
 ' scriptConfig - object for the global script configuration       '
 ' srvConfig - configuration object of the server                  '
 '-----------------------------------------------------------------'
 
-Function pingICMPServer(scriptConfig, srvConfig)
-	On Error Resume Next
-	Dim ping, pEle, online
-	
-	online = false
-	Set ping = scriptConfig.winMgmts.ExecQuery(getWMIPingCmd(scriptConfig, srvConfig))
-	If ping.count > 0 Then
-		If Err.Number = 0 Then
-			For each pEle in ping
-				online = Not isNull(pEle) And Not IsNull(pEle.StatusCode) And pEle.StatusCode = 0
-				If Not online Then
-					Exit For
-				End If
-			Next
-		End If
-	End If
-	On Error GoTo 0
-	pingICMPServer = Not online
+Function pingWMI(scriptConfig, srvConfig)
+    On Error Resume Next
+    Dim ping, pEle, online
+    
+    online = false
+    Set ping = scriptConfig.winMgmts.ExecQuery(getWMIPingCmd(scriptConfig, srvConfig))
+    If ping.count > 0 Then
+        If Err.Number = 0 Then
+            For each pEle in ping
+                online = Not isNull(pEle) And Not IsNull(pEle.StatusCode) And pEle.StatusCode = 0
+                If Not online Then
+                    Exit For
+                End If
+            Next
+        End If
+    End If
+    On Error GoTo 0
+    pingWMI = Not online
 End Function
 
 '-----------------------------------------------------------------'
@@ -452,27 +457,31 @@ End Function
 '                                                                 '
 ' scriptConfig - object for the global script configuration       '
 ' srvConfig - configuration object of the server                  '
-' icmp - use icmp ping instead of shell ping                      '
+' wmi - use WMI ping instead of shell ping                        '
 '-----------------------------------------------------------------'
 
-Function retryPingServer(scriptConfig, srvConfig, icmp)
-	Dim i, offline
-	
-	i = 0
-	offline = true
-	While offline And i <= scriptConfig.pingCtn - 1
-		If icmp Then
-			offline = pingICMPServer(scriptConfig, srvConfig)
-		Else
-			offline = pingServer(scriptConfig, srvConfig)
-		End If
-		i = i + 1
-		If offline Then
-			WScript.Sleep scriptConfig.pingWait
-		End If
-	Wend
-	
-	retryPingServer = offline
+Function retryPing(scriptConfig, srvConfig, wmi)
+    Dim i, offline
+    
+    i = 0
+    offline = true
+	If scriptConfig.pingEnabled Then
+        While offline And i <= scriptConfig.pingCtn - 1
+            If wmi Then
+                offline = pingWMI(scriptConfig, srvConfig)
+            Else
+                offline = pingCMD(scriptConfig, srvConfig)
+            End If
+            i = i + 1
+            If offline Then
+                WScript.Sleep scriptConfig.pingWait
+            End If
+        Wend
+    Else
+        offline = false
+    End If
+    
+    retryPing = offline
 End Function
 
 '------------------------------------------------------------'
@@ -483,22 +492,22 @@ End Function
 '------------------------------------------------------------'
 
 Function getNetUseCmd(srvConfig, pos)
-	Dim address, user
-	
-	If srvConfig.isUri Then
-		address = createUriPath(srvConfig.hostname, srvConfig.sharePaths(pos), srvConfig.secure)
-	Else
-		address = createUncPath(srvConfig.hostname, srvConfig.sharePaths(pos))
-	End If
-	
-	If Len(srvConfig.user) > 0 Then
-		user = " /user:" & srvConfig.user & " " & srvConfig.password
-	else
-		user = ""
-	End If
-	
-	getNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " " & chr(34) & address _ 
-						& chr(34) & user & " /persistent:" & srvConfig.persistent
+    Dim address, user
+    
+    If srvConfig.isUri Then
+        address = createUriPath(srvConfig.hostname, srvConfig.sharePaths(pos), srvConfig.secure)
+    Else
+        address = createUncPath(srvConfig.hostname, srvConfig.sharePaths(pos))
+    End If
+    
+    If Len(srvConfig.user) > 0 Then
+        user = " /user:" & srvConfig.user & " " & srvConfig.password
+    else
+        user = ""
+    End If
+    
+    getNetUseCmd = "net use " & srvConfig.shareLetters(pos) & " " & chr(34) & address _ 
+                        & chr(34) & user & " /persistent:" & srvConfig.persistent
 End Function
 
 '----------------------------------------------------------------------'
@@ -509,27 +518,27 @@ End Function
 '----------------------------------------------------------------------'
 
 Sub netUseServerShares(ByVal scriptConfig, ByRef srvConfig)
-	Dim i, failed, ctn
-	
-	i = 0
-	ctn = 0
-	failed = 1
-	While failed = 1 And i <= scriptConfig.netUseCtn - 1
-		For j = 0 to uBound(srvConfig.sharePaths)
-			If ctn = 0 Then
-				failed = scriptConfig.shell.Run(getNetUseCmd(srvConfig, j), 0, True)
-			Else
-				scriptConfig.shell.Run getNetUseCmd(srvConfig, j), 0, True
-			End If
-			ctn = ctn + 1
-		Next
-		i = i + 1
-		If failed = 1 Then
-			WScript.Sleep scriptConfig.netUseWait
-		End If
-	Wend
-	
-	srvConfig.connected = true
+    Dim i, failed, ctn
+    
+    i = 0
+    ctn = 0
+    failed = 1
+    While failed = 1 And i <= scriptConfig.netUseCtn - 1
+        For j = 0 to uBound(srvConfig.sharePaths)
+            If ctn = 0 Then
+                failed = scriptConfig.shell.Run(getNetUseCmd(srvConfig, j), 0, True)
+            Else
+                scriptConfig.shell.Run getNetUseCmd(srvConfig, j), 0, True
+            End If
+            ctn = ctn + 1
+        Next
+        i = i + 1
+        If failed = 1 Then
+            WScript.Sleep scriptConfig.netUseWait
+        End If
+    Wend
+    
+    srvConfig.connected = true
 End Sub
 
 '--------------------------------------------------------------------'
@@ -540,15 +549,15 @@ End Sub
 '--------------------------------------------------------------------'
 
 Sub checkSrvState(ByVal scriptConfig, ByRef srvConfig)
-	If Not retryPingServer(scriptConfig, srvConfig, true) Then
-		If Len(srvConfig.user) > 0 Then
-			srvConfig.online = true
-		Else
-			srvConfig.online = scriptConfig.fso.FolderExists(srvConfig.fsTestPath)
-		End If
-	Else
-		srvConfig.online = false
-	End If
+    If Not retryPing(scriptConfig, srvConfig, true) Then
+        If Len(srvConfig.user) > 0 Then
+            srvConfig.online = true
+        Else
+            srvConfig.online = scriptConfig.fso.FolderExists(srvConfig.fsTestPath)
+        End If
+    Else
+        srvConfig.online = false
+    End If
 End Sub
 
 '-------------------------------------------------------------------'
@@ -558,7 +567,7 @@ End Sub
 '-------------------------------------------------------------------'
 
 Function isSrvOffline(srvConfigs)
-	isSrvOffline = isSrvState(srvConfigs, false)
+    isSrvOffline = isSrvState(srvConfigs, false)
 End Function
 
 '------------------------------------------------------------------'
@@ -568,7 +577,7 @@ End Function
 '------------------------------------------------------------------'
 
 Function isSrvOnline(srvConfigs)
-	isSrvOnline = isSrvState(srvConfigs, true)
+    isSrvOnline = isSrvState(srvConfigs, true)
 End Function
 
 
@@ -580,17 +589,17 @@ End Function
 '------------------------------------------------------------------'
 
 Function isSrvState(srvConfigs, state)
-	Dim online
-	
-	online = false
-	For i = 0 to uBound(srvConfigs)
-		If srvConfigs(i).online = state Then
-			online = true
-			Exit For
-		End If
-	Next
-	
-	isSrvState = online
+    Dim online
+    
+    online = false
+    For i = 0 to uBound(srvConfigs)
+        If srvConfigs(i).online = state Then
+            online = true
+            Exit For
+        End If
+    Next
+    
+    isSrvState = online
 End Function
 
 '--------------------------------------------------------------'
@@ -600,27 +609,27 @@ End Function
 ' retries - number of already executed retries                 '
 '--------------------------------------------------------------'
 
-Function getReconWait(scriptConfig, retries)	
-	dim coEff
-	dim reconWait
-	
-	If scriptConfig.reconAdaptive Then
-		coEff = Fix(retries / 15)
-		
-		If coEff >= 5 Then
-			coEff = 10
-		ElseIf coEff >= 1 Then
-			coEff = coEff * 2
-		Else
-			coEff = 1
-		End If
-	
-		reconWait = scriptConfig.reconWait * coEff
-	Else
-		reconWait = scriptConfig.reconWait
-	End If
-	
-	getReconWait = reconWait
+Function getReconWait(scriptConfig, retries)    
+    dim coEff
+    dim reconWait
+    
+    If scriptConfig.reconAdaptive Then
+        coEff = Fix(retries / 15)
+        
+        If coEff >= 5 Then
+            coEff = 10
+        ElseIf coEff >= 1 Then
+            coEff = coEff * 2
+        Else
+            coEff = 1
+        End If
+    
+        reconWait = scriptConfig.reconWait * coEff
+    Else
+        reconWait = scriptConfig.reconWait
+    End If
+    
+    getReconWait = reconWait
 End Function
 
 '-------------------------------------------------------------------------'
@@ -632,25 +641,25 @@ End Function
 '-------------------------------------------------------------------------'
 
 Sub printDebug(scriptConfig, onSrvs, offSrvs)
-	Dim debugOut, onLen, offLen
-	
-	If scriptConfig.debug Then
-		onLen = Len(onSrvs)
-		offLen = Len(offSrvs)
-		debugOut = ""
-		
-		If Not (onLen = 0) Then
-			debugOut = "Server(s) online: " & onSrvs
-		End If
-		If Not (onLen = 0) And Not (offLen = 0) Then
-			debugOut = debugOut & vbNewLine
-		End If
-		If Not (offLen = 0) Then
-			debugOut = debugOut & "Server(s) offline: " & offSrvs
-		End If
-		
-		MsgBox(debugOut)
-	End If
+    Dim debugOut, onLen, offLen
+    
+    If scriptConfig.debug Then
+        onLen = Len(onSrvs)
+        offLen = Len(offSrvs)
+        debugOut = ""
+        
+        If Not (onLen = 0) Then
+            debugOut = "Server(s) online: " & onSrvs
+        End If
+        If Not (onLen = 0) And Not (offLen = 0) Then
+            debugOut = debugOut & vbNewLine
+        End If
+        If Not (offLen = 0) Then
+            debugOut = debugOut & "Server(s) offline: " & offSrvs
+        End If
+        
+        MsgBox(debugOut)
+    End If
 End Sub
 
 '---------------------------------------------------------------'
@@ -661,12 +670,12 @@ End Sub
 '---------------------------------------------------------------'
 
 Function getSrvDebug(part, srvConfig)
-	dim seperator
-	If part = "" Then
-		seperator = ""
-	Else 
-		seperator = " | "
-	End If
+    dim seperator
+    If part = "" Then
+        seperator = ""
+    Else 
+        seperator = " | "
+    End If
 
-	getSrvDebug = part & seperator & srvConfig.hostname
+    getSrvDebug = part & seperator & srvConfig.hostname
 End Function

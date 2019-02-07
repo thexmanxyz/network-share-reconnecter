@@ -44,15 +44,16 @@ Here a short description of the available parameters which can be configured:
   * `secure` - defines whether the HTTP or HTTPS protocol should be used **(URI only)**
   
 * Global Script Configuration
+  * `pingEnabled` - defines whether the script should use ping availability check
   * `pingWait` - wait time after failed server ping
+  * `pingTimeout` - how many milliseconds pass before the ping is canceled
+  * `pingCtn` - how many pings per access request should be executed before giving up
+  * `pingDefaultSrv` - use common server if target service rejects pings **(URI only)**
   * `netUseWait` - wait time after failed *net use*
+  * `netUseCtn` - how many *net use* fails per reconnect are allowed before giving up
   * `reconWait` - wait time after failed availability check
   * `reconAdaptive` - boolean to enable automatic reconnection intensity instead of static timeout
-  * `pingCtn` - how many pings per access request should be executed before giving up
-  * `netUseCtn` - how many *net use* fails per reconnect are allowed before giving up
   * `serverRetryCtn` - how many overall reconnection tries should be executed
-  * `pingTimeout` - how many milliseconds pass before the ping is canceled
-  * `pingDefaultSrv` - use common server if target service rejects pings **(URI only)**
   * `debug` - enable or disable debug messages on current reconnection state
 
 ### UNC Sample Configuration
@@ -77,10 +78,10 @@ If your share needs to be accessed over HTTP(S) like `http://my.webserver.com/pa
 * optimized, adaptive and fast reconnection in comparison to simple scripts.
 
 ## Future Tasks
-* net use analyze to better handle failure states
-* load script config from XML
-* install and configuration app (script)
-* permanent task / hook on event?
+- [ ] net use analyze to better handle failure states
+- [ ] load script config from XML
+- [ ] install and configuration app (script)
+- [ ] permanent task / hook on event?
 
 ## Known Issues
 None

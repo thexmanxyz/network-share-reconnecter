@@ -1,5 +1,5 @@
 # Windows thumbnail cache files
-Thumbs.db
+[Tt]humbs.db
 ehthumbs.db
 ehthumbs_vista.db
 
@@ -20,3 +20,12 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# ignore base build file
+base-build.bat
+
+# IntelliJ
+.idea/
+
+# Mac OS
+.DS_Store/
