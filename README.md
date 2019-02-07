@@ -18,11 +18,12 @@ Example for a reconnect of a drive which was recognized by Windows as not-connec
 * little knowledge on Windows Task Scheduling
 
 ## Download / Installation
-1. [Download v1.3.7](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.7/nsr.v1.3.7.zip) of the Network Share Reconnecter Package.
+1. [Download v1.3.8](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.8/nsr.v1.3.8.zip) of the Network Share Reconnecter Package.
 2. Extract the files.
 3. Modify the sample configuration in the **share_reconnect.vbs** script file.
-   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L41-L43) and [Issue #1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
+   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L41-L43) and [#1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
    * Multiple servers can be easily added and configured.
+   * Be aware that every host has to support ping, otherwise please deactivate script ping execution ([#9](https://github.com/thexmanxyz/network-share-reconnecter/issues/9))
 4. Copy **share_reconnect.vbs** to a self defined directory.
 5. Start Windows Task Scheduler - manually or with **taskschd.msc**.
 6. Import **Network_Share_Reconnecter.xml** - there are different versions for Windows 7 and 10.
