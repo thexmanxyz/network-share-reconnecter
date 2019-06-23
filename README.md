@@ -85,7 +85,7 @@ If your share needs to be accessed over HTTP(S) like `http://my.webserver.com/pa
 - [ ] permanent task / hook on event?
 
 ## Known Issues
-There might be an issue which results in an occurring tray icon which states *Could not reconnect all network drives* (see also #11). If you want to get rid of this tray icon and the corresponding message you can use the script files included in this [repositoy](https://github.com/thexmanxyz/network-share-reconnecter/tree/master/registry). They might also get merged to one of the next releases. There is one file to apply the fix and a second one to restore the previous / original state.
+There might be an issue which results in an occurring tray icon which states *Could not reconnect all network drives* (see also [#11](https://github.com/thexmanxyz/network-share-reconnecter/issues/11)). If you want to get rid of this tray icon and the corresponding message you can use the script files included in this [repositoy](https://github.com/thexmanxyz/network-share-reconnecter/tree/master/registry). They might also get merged to one of the next releases. There is one file to apply the fix and a second one to restore the previous / original state.
 
 ![2](/screenshots/tray_issue.png)
 
