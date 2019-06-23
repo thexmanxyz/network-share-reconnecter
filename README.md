@@ -21,7 +21,7 @@ Example for a reconnect of a drive which was recognized by Windows as not-connec
 1. [Download v1.3.8](https://github.com/thexmanxyz/network-share-reconnecter/releases/download/v1.3.8/nsr.v1.3.8.zip) of the Network Share Reconnecter Package.
 2. Extract the files.
 3. Modify the sample configuration in the **share_reconnect.vbs** script file.
-   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L41-L43) and [#1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
+   * At least modify `hostname`, `sharePaths` and `shareLetters` (see also the [configuration section](https://github.com/thexmanxyz/network-share-reconnecter/blob/master/src/share_reconnect.vbs#L43-L45) and [#1](https://github.com/thexmanxyz/network-share-reconnecter/issues/1)).
    * Multiple servers can be easily added and configured.
    * Be aware that every host has to support ping, otherwise please deactivate script ping execution ([#9](https://github.com/thexmanxyz/network-share-reconnecter/issues/9))
 4. Copy **share_reconnect.vbs** to a self defined directory.
