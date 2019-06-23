@@ -89,7 +89,7 @@ There might be an issue which results in an occurring tray icon which states *Co
 
 ![3](/screenshots/tray_issue.png)
 
-If you want to get rid of this tray icon and the corresponding message you can use the script files included in this [repository](https://github.com/thexmanxyz/network-share-reconnecter/tree/master/registry). They might also get merged to one of the next releases. There is one file to apply the fix and a second one to restore the previous / original state. Please see also [#11](https://github.com/thexmanxyz/network-share-reconnecter/issues/11) for more approaches to fix this issue.
+If you want to get rid of this tray icon and the corresponding message you can try to use the `.reg` files included in this [repository](https://github.com/thexmanxyz/network-share-reconnecter/tree/master/registry). They might also get merged into one of the next releases. There is one file to apply the fix and a second one to restore the previous / original state. Please see also [#11](https://github.com/thexmanxyz/network-share-reconnecter/issues/11) for more approaches to fix this issue.
 
 ## by [thex](https://github.com/thexmanxyz)
 Copyright (c) 2019, free to use in personal and commercial software as per the [license](/LICENSE.md).
